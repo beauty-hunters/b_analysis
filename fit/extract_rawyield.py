@@ -255,7 +255,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
-    parser.add_argument("--config", "-c", metavar="text", default="config_fit.root",
+    parser.add_argument("--config", "-c", metavar="text", default="config_fit.yml",
                         help="yaml config file for fit", required=True)
     args = parser.parse_args()
     fit(args.config)
