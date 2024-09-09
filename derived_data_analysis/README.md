@@ -3,7 +3,7 @@
 ## Requirements
 In order to execute the scripts in this folder, [O2Physics](https://github.com/AliceO2Group/O2Physics) must be installed
 
-## Run the B<sup>0<\sup> task
+## Run the B<sup>0</sup> task
 The script [run_b0_analysis.sh](https://github.com/beauty-hunters/b_analysis/blob/main/derived_data_analysis/run_b0_analysis.sh) can be used to execute the [taskB0Reduced.cxx](https://github.com/AliceO2Group/O2Physics/blob/master/PWGHF/D2H/Tasks/taskB0Reduced.cxx) locally
 In order to do that, the user must:
 - enter the `O2Physics` environment
