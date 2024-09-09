@@ -4,4 +4,4 @@
 ![](https://img.shields.io/github/languages/count/beauty-hunters/b_analysis?color=green)
 ![](https://img.shields.io/github/last-commit/beauty-hunters/b_analysis?color=red)
 
-Repository for the analysis ofbeauty hadrons with ALICE data
+Repository for the analysis of beauty hadrons with ALICE data
