@@ -1,11 +1,30 @@
 #!/bin/bash
 
-MC=0
+MC=0                    # Default value for MC
+PARTICLE="b0"           # Default value for PARTICLE
+CHARMDAUGHTER="d"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --mc)
+            if [[ -z "$2" ]]; then
+                echo "Error: Missing argument for --mc"
+                exit 1
+            fi
             MC="$2"
+            shift # Move past argument value
+            shift # Move past argument name
+            ;;
+        --particle)
+            if [[ -z "$2" ]]; then
+                echo "Error: Missing argument for --particle"
+                exit 1
+            fi
+            PARTICLE="$2"
+            if [[ "$PARTICLE" != "bplus" && "$PARTICLE" != "b0" ]]; then
+                echo "Wrong particle: only 'bplus' and 'b0' are accepted"
+                exit 1
+            fi
             shift # Move past argument value
             shift # Move past argument name
             ;;
@@ -16,11 +35,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo $MC
+# Output the final values
+echo "MC: $MC"
+echo "Particle: $PARTICLE"
 
-JSONCONFIG=dpl-config_b0_mc.json
+if [ "$PARTICLE" == "bplus" ]; then
+    CHARMDAUGHTER="d0"
+fi
+
+JSONCONFIG=dpl-config_${PARTICLE}_mc.json
 if [ $MC -eq 0 ]; then
-    JSONCONFIG=dpl-config_b0.json
+    JSONCONFIG=dpl-config_${PARTICLE}.json
 fi
 COMMONCONFIGS="-b --aod-memory-rate-limit 1000000000 --configuration json://$JSONCONFIG --shm-segment-size 7500000000"
 
@@ -36,9 +61,9 @@ IFS='_' read -ra SUFFIX <<< $AODNAMENOPATH
 SUFFIX=${SUFFIX[0]}
 SUFFIX=$(echo "$AODNAMENOPATH" | sed "s/$SUFFIX//g")
 
-o2-analysis-hf-task-b0-reduced $COMMONCONFIGS |
-o2-analysis-hf-candidate-selector-b0-to-d-pi-reduced $COMMONCONFIGS |
-o2-analysis-hf-candidate-creator-b0-reduced $COMMONCONFIGS --aod-writer-json OutputDirector.json --resources-monitoring 2 --fairmq-ipc-prefix .
+o2-analysis-hf-task-${PARTICLE}-reduced $COMMONCONFIGS |
+o2-analysis-hf-candidate-selector-${PARTICLE}-to-${CHARMDAUGHTER}-pi-reduced $COMMONCONFIGS |
+o2-analysis-hf-candidate-creator-${PARTICLE}-reduced $COMMONCONFIGS --aod-writer-json OutputDirector_${PARTICLE}.json --resources-monitoring 2 --fairmq-ipc-prefix .
 
 mv AnalysisResults.root AnalysisResultsTask$SUFFIX
 touch ao2ds_to_merge.txt
