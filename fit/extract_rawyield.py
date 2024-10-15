@@ -100,12 +100,12 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
     particle = cfg["particle"]
     if particle == "Bplus":
         pdgId = 521
-        decayChannel = r"\overline{D}^{0} \pi^{\plus}"
+        decay_channel = r"\overline{D}^{0} \pi^{\plus}"
         particleName = "B^{+}"
         fFlagMcMatchRec = 4 # prd = partly reco decays
     if particle == "B0":
         pdgId = 511
-        decayChannel = r"D^{-} \pi^{\plus}"
+        decay_channel = r"D^{-} \pi^{\plus}"
         particleName = "B^{0}"
         fFlagMcMatchRec = 8 # prd = partly reco decays
 
@@ -161,12 +161,12 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
         if result.converged:
             fig, axs = fitter_mc_ptint.plot_mass_fit(style="ATLAS",
                                                      figsize=(8, 8),
-                                                     axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                     axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
             add_info_on_canvas(axs, "upper left", "MC pp", pt_mins[0], pt_maxs[-1], fitter_mc_ptint)
 
             fig_res = fitter_mc_ptint.plot_raw_residuals(style="ATLAS",
                                                          figsize=(8, 8),
-                                                         axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                         axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
 
             fig.savefig(os.path.join(outdir, f"{particle}_mass_ptint_MC.pdf"))
             fig_res.savefig(os.path.join(outdir, f"{particle}_massres_ptint_MC.pdf"))
@@ -201,13 +201,13 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
         if result.converged:
             fig, axs = fitter_ptint.plot_mass_fit(style="ATLAS",
                                                   figsize=(8, 8),
-                                                  axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)",
+                                                  axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)",
                                                   show_extra_info=True)
             add_info_on_canvas(axs, "upper left", "pp", pt_mins[0], pt_maxs[-1])
 
             fig_res = fitter_ptint.plot_raw_residuals(style="ATLAS",
                                                       figsize=(8, 8),
-                                                      axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                      axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
 
             fig.savefig(os.path.join(outdir, f"{particle}_mass_ptint.pdf"))
             fig_res.savefig(os.path.join(outdir, f"{particle}_massres_ptint.pdf"))
@@ -239,12 +239,12 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
         if result.converged:
             fig, axs = fitter_mc_pt.plot_mass_fit(style="ATLAS",
                                                   figsize=(8, 8),
-                                                  axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                  axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
             add_info_on_canvas(axs, "upper left", "MC pp", pt_min, pt_max, fitter_mc_pt)
 
             fig_res = fitter_mc_pt.plot_raw_residuals(style="ATLAS",
                                                       figsize=(8, 8),
-                                                      axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                      axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
 
             fig.savefig(os.path.join(outdir, f"{particle}_mass_pt{pt_min:.0f}_{pt_max:.0f}_MC.pdf"))
             fig_res.savefig(os.path.join(outdir, f"{particle}_massres_pt{pt_min:.0f}_{pt_max:.0f}_MC.pdf"))
@@ -291,13 +291,13 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements
         if result.converged:
             fig, axs = fitter_pt.plot_mass_fit(style="ATLAS",
                                                figsize=(8, 8),
-                                               axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)",
+                                               axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)",
                                                show_extra_info=True)
             add_info_on_canvas(axs, "upper left", "pp", pt_min, pt_max)
 
             fig_res = fitter_pt.plot_raw_residuals(style="ATLAS",
                                                    figsize=(8, 8),
-                                                   axis_title=rf"$M(\mathrm{{{decayChannel}}})$ (GeV/$c^2$)")
+                                                   axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)")
 
             fig.savefig(os.path.join(outdir, f"{particle}_mass_pt{pt_min:.0f}_{pt_max:.0f}.pdf"))
             fig_res.savefig(os.path.join(outdir, f"{particle}_massres_pt{pt_min:.0f}_{pt_max:.0f}.pdf"))
