@@ -11,7 +11,6 @@ import uproot
 import yaml
 from hist import Hist
 from matplotlib.offsetbox import AnchoredText
-import matplotlib
 from flarefly.data_handler import DataHandler
 from flarefly.fitter import F2MassFitter
 
@@ -140,25 +139,26 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     df_mc.query(selection_string, inplace=True)
     df_mc_sig = df_mc.query("fFlagMcMatchRec == -1 or fFlagMcMatchRec == 1")
 
-    dfs_prd_bkg, fracs_ptint = [], []
+    dfs_prd_bkg, dfs_prd_bkg_orig, fracs_ptint = [], [], []
     correlated_bkgs = cfg["fit_configs"]["correlated_bkgs"]
     den_norm = len(df_mc_sig) * cfg["fit_configs"]["signal_br"]["pdg"] / cfg["fit_configs"]["signal_br"]["sim"]
     for bkg in correlated_bkgs:
         df_prd_bkg = df_mc.query(f"fFlagMcMatchRec == {flag_mc_match_rec} and "
                                  f"fPdgCodeBeautyMother == {bkg['beauty_id']} and "
                                  f"fPdgCodeCharmMother == {bkg['charm_id']}")
-        dfs_prd_bkg.append(df_prd_bkg)
+        dfs_prd_bkg_orig.append(df_prd_bkg)
         fracs_ptint.append(len(df_prd_bkg) * bkg["br_pdg"] / bkg["br_sim"] / den_norm)
     sum_fracs = sum(fracs_ptint)
     fracs_ptint_norm = [frac / sum_fracs for frac in fracs_ptint]
 
+    dfs_prd_bkg_sampled = []
     if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 1:
-        dfs_prd_bkg_sampled = []
-        for frac, df_bkg in zip(fracs_ptint_norm, dfs_prd_bkg):
+        for frac, df_bkg in zip(fracs_ptint_norm, dfs_prd_bkg_orig):
             dfs_prd_bkg_sampled.append(df_bkg.sample(frac=frac))
 
-        dfs_prd_bkg.clear()
         dfs_prd_bkg.append(pd.concat(dfs_prd_bkg_sampled))
+    else:
+        dfs_prd_bkg = dfs_prd_bkg_orig
 
     # define output file
     outdir = cfg["outputs"]["directory"]
@@ -178,7 +178,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                        ["nobkg"],
                                        name=f"{particle}_mc_ptint",
                                        label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"])
-        fitter_mc_ptint.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.08])
+        fitter_mc_ptint.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.10])
         fitter_mc_ptint.set_signal_initpar(0, "sigma2", 0.08, limits=[0.01, 0.25])
         fitter_mc_ptint.set_particle_mass(0, pdg_id=pdg_id)
         result = fitter_mc_ptint.mass_zfit()
@@ -240,7 +240,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         fitter_ptint.set_particle_mass(0, pdg_id=pdg_id)
         icombbkg = len(dfs_prd_bkg)
         fitter_ptint.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.1, 0.])
-        fitter_ptint.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.020])
+        fitter_ptint.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.030])
         fitter_ptint.set_signal_initpar(0, "frac", 0.05, limits=[0., 1.])
         result = fitter_ptint.mass_zfit()
         if result.converged:
@@ -278,7 +278,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                     ["nobkg"],
                                     name=f"{particle}_mc_pt{pt_min:.0f}_{pt_max:.0f}",
                                     label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"])
-        fitter_mc_pt.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.08])
+        fitter_mc_pt.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.10])
         fitter_mc_pt.set_signal_initpar(0, "sigma2", 0.08, limits=[0.01, 0.25])
         fitter_mc_pt.set_particle_mass(0, pdg_id=pdg_id)
         result = fitter_mc_pt.mass_zfit()
@@ -318,8 +318,9 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         if cfg["fit_configs"]["pt_int"]["use_bkg_templ"]:
             dfs_prd_bkg_pt = [df.query(f"{pt_min} < fPt < {pt_max}") for df in dfs_prd_bkg]
             fracs_pt = []
-            for bkg in correlated_bkgs:
-                fracs_pt.append(len(df_prd_bkg) * bkg["br_pdg"] / bkg["br_sim"] / den_norm)
+            for bkg, df_prd_bkg in zip(correlated_bkgs, dfs_prd_bkg_orig):
+                df_prd_bkg_orig_pt = df_prd_bkg.query(f"{pt_min} < fPt < {pt_max}")
+                fracs_pt.append(len(df_prd_bkg_orig_pt) * bkg["br_pdg"] / bkg["br_sim"] / den_norm)
 
             for i_bkg, (bkg, df_prd_bkg) in enumerate(zip(correlated_bkgs, dfs_prd_bkg_pt)):
                 data_hdls_prd_bkg.append(DataHandler(df_prd_bkg, var_name="fM",
@@ -362,7 +363,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         icombbkg = len(dfs_prd_bkg_pt)
         fitter_pt.set_background_initpar(icombbkg, "lam", -1.2, limits=[-10., 10.])
         fitter_pt.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.1, 0.])
-        fitter_pt.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.020])
+        fitter_pt.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.03])
         result = fitter_pt.mass_zfit()
         if result.converged:
             fig, axs = fitter_pt.plot_mass_fit(style="ATLAS",
