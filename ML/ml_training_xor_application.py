@@ -27,10 +27,10 @@ import yaml  # pylint: disable=import-error
 from sklearn.model_selection import \
     train_test_split  # pylint: disable=import-error
 
-# try:
-#     from hipe4ml_converter.h4ml_converter import H4MLConverter
-# except ModuleNotFoundError:
-#     print("Module 'hipe4ml_converter' is not installed. Please install it to run this macro")
+try:
+    from hipe4ml_converter.h4ml_converter import H4MLConverter
+except ModuleNotFoundError:
+    print("Module 'hipe4ml_converter' is not installed. Please install it to run this macro")
 
 LABEL_BKG = 0
 LABEL_SIG = 1
@@ -389,9 +389,9 @@ class MlTraining(MlCommon):
             os.remove(f"{out_dir}/ModelHandler_onnx_{self.channel}.onnx")
 
         model_hdl.dump_model_handler(f"{out_dir}/ModelHandler_{self.channel}" f"_pT_{pt_bin[0]}_{pt_bin[1]}.pickle")
-        # model_conv = H4MLConverter(model_hdl)
-        # model_conv.convert_model_onnx(1)
-        # model_conv.dump_model_onnx(f"{out_dir}/ModelHandler_onnx_{self.channel}" f"_pT_{pt_bin[0]}_{pt_bin[1]}.onnx")
+        model_conv = H4MLConverter(model_hdl)
+        model_conv.convert_model_onnx(1)
+        model_conv.dump_model_onnx(f"{out_dir}/ModelHandler_onnx_{self.channel}" f"_pT_{pt_bin[0]}_{pt_bin[1]}.onnx")
 
         # plots
         # _____________________________________________
