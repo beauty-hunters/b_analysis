@@ -1,0 +1,68 @@
+fonll_url: http://www.lpthe.jussieu.fr/~cacciari/fonll/fonllform.html
+output_dir: ./fonll_results
+wait_timeout: 15
+delay_between_predictions: 3
+download_wait_time: 120
+parallel_mode: true
+max_workers: 8
+browser_options:
+  headless: false
+  no_sandbox: true
+  window_size: 1920,1080
+email: fabrizio.chinu@cern.ch
+predictions:
+- name: fonll_bhadron_nnpdfs_y25_30_13tev
+  description: bottom production at 13.6 TeV, central rapidity
+  fields:
+  - type: select
+    selector: collider
+    value: '14' # LHC  (pp,  13 TeV)    [ptmax ≤ 300 GeV]
+    description: Center-of-mass energy
+  - type: select
+    selector: heavy_quark
+    value: bottom
+    description: Heavy quark type  
+  - type: select
+    selector: pdf
+    value: '10550' # 260000 NNPDF30nlo_as0118, 10550 CTEQ6.6
+    description: PDF set
+  - type: select
+    selector: xsect_type
+    value: '1' # Total cross section (within cuts)
+    description: Cross section type
+  - type: select
+    selector: band
+    value: '3' #  uncertainty range from scales and masses
+    description: uncertainty type
+  - type: select
+    selector: final_state
+    value: '1' # B meson
+    description: Final state particle
+  - type: input
+    selector: BRbB
+    value: '0.405'
+    description: Fragmentation fraction for b -> B
+  - type: checkbox
+    selector: pdfunc
+    value: True
+    description: Include PDFs uncertainties
+  - type: checkbox
+    selector: allcurves
+    value: True
+    description: Output all scales
+  - type: input
+    selector: ptmin
+    value: '0'
+    description: Minimum pT (GeV)
+  - type: input
+    selector: ptmax
+    value: '50'
+    description: Maximum pT (GeV)
+  - type: input
+    selector: ymin
+    value: '-0.5'
+    description: Minimum rapidity
+  - type: input
+    selector: ymax
+    value: '0.5'
+    description: Maximum rapidity
