@@ -150,13 +150,15 @@ def plot(infile_name, colors, version, pt_min=None, pt_max=None):
     lat.SetNDC()
     lat.SetTextFont(42)
     lat.SetTextColor(ROOT.kBlack)
-    lat.SetTextSize(0.05)
+    lat.SetTextSize(0.06)
+    lat.SetTextAlign(31)
 
     lat_small = ROOT.TLatex()
     lat_small.SetNDC()
     lat_small.SetTextFont(42)
     lat_small.SetTextColor(ROOT.kBlack)
     lat_small.SetTextSize(0.04)
+    lat_small.SetTextAlign(31)
 
     leg = ROOT.TLegend(0.62, 0.5, 0.92, 0.7)
     leg.SetTextSize(0.03)
@@ -189,17 +191,17 @@ def plot(infile_name, colors, version, pt_min=None, pt_max=None):
     leg_corr.SetFillStyle(0)
     if version == 1:
         leg_corr.AddEntry(func_bkg_corr_5, "B^{0}#rightarrow D^{#minus}K^{+}", "l")
-        leg_corr.AddEntry(func_bkg_corr_1, "B^{0}#rightarrow D^{*#minus}#pi^{+}#rightarrow D^{0}#pi^{#minus}#pi^{+}", "l")
+        leg_corr.AddEntry(func_bkg_corr_1, "B^{0}#rightarrow D*^{#minus}#pi^{+}#rightarrow D^{0}#pi^{#minus}#pi^{+}", "l")
         leg_corr.AddEntry(func_bkg_corr_2, "B_{s}^{0}#rightarrow D_{s}^{#minus}#pi^{+}#rightarrow K^{+}K^{#minus}#pi^{+}#pi^{+}", "l")
         leg_corr.AddEntry(func_bkg_corr_3, "#Lambda_{b}^{0}#rightarrow #kern[-0.5]{#Lambda_{c}^{+}}#pi^{#minus}#rightarrow pK^{#minus}#pi^{+}#pi^{#minus}", "l")
-        leg_corr.AddEntry(func_bkg_corr_0, "B^{0}#rightarrow D^{*#minus}#pi^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "l")
+        leg_corr.AddEntry(func_bkg_corr_0, "B^{0}#rightarrow D*^{#minus}#pi^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "l")
         leg_corr.AddEntry(func_bkg_corr_4, "B^{0}#rightarrow D^{#minus}#rho^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "l")
     else:
         leg_corr.AddEntry(hist_bkg_corr_5, "B^{0}#rightarrow D^{#minus}K^{+}", "f")
-        leg_corr.AddEntry(hist_bkg_corr_1, "B^{0}#rightarrow D^{*#minus}#pi^{+}#rightarrow D^{0}#pi^{#minus}#pi^{+}", "f")
+        leg_corr.AddEntry(hist_bkg_corr_1, "B^{0}#rightarrow D*^{#minus}#pi^{+}#rightarrow D^{0}#pi^{#minus}#pi^{+}", "f")
         leg_corr.AddEntry(hist_bkg_corr_2, "B_{s}^{0}#rightarrow D_{s}^{#minus}#pi^{+}#rightarrow K^{+}K^{#minus}#pi^{+}#pi^{+}", "f")
         leg_corr.AddEntry(hist_bkg_corr_3, "#Lambda_{b}^{0}#rightarrow #kern[-0.5]{#Lambda_{c}^{+}}#pi^{#minus}#rightarrow pK^{#minus}#pi^{+}#pi^{#minus}", "f")
-        leg_corr.AddEntry(hist_bkg_corr_0, "B^{0}#rightarrow D^{*#minus}#pi^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "f")
+        leg_corr.AddEntry(hist_bkg_corr_0, "B^{0}#rightarrow D*^{#minus}#pi^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "f")
         leg_corr.AddEntry(hist_bkg_corr_4, "B^{0}#rightarrow D^{#minus}#rho^{+}#rightarrow D^{#minus}#pi^{+}{#pi^{0},#gamma}", "f")
 
     canv_masses = ROOT.TCanvas("canv_masses", "", 500, 500)
@@ -229,16 +231,16 @@ def plot(infile_name, colors, version, pt_min=None, pt_max=None):
         func_totfunc.Draw("lsame")
         hist_signal.DrawCopy("histsame")
         func_signal.Draw("lsame")
-    lat.DrawLatex(0.57, 0.85, "ALICE Preliminary")
-    lat_small.DrawLatex(0.416, 0.79,
+    lat.DrawLatex(0.93, 0.85, "ALICE")
+    lat_small.DrawLatex(0.93, 0.79,
                         "pp,#kern[0.04]{#sqrt{#it{s}} = 13.6 TeV},#kern[0.09]{#font[132]{#it{L}}_{int} = 43 pb^{#minus1}}")
 
     if pt_min is None and pt_max is None:
-        lat_small.DrawLatex(0.60, 0.73, "1 < #kern[-0.3]{#it{p}_{T}} < 23.5 GeV/#it{c}")
+        lat_small.DrawLatex(0.93, 0.73, "1 < #kern[-0.3]{#it{p}_{T}} < 23.5 GeV/#it{c}")
     elif pt_min==2 and pt_max==4:
-        lat_small.DrawLatex(0.64, 0.73, f"{pt_min} < #it{{p}}_{{T}} < {pt_max} GeV/#it{{c}}")
+        lat_small.DrawLatex(0.93, 0.73, f"{pt_min} < #it{{p}}_{{T}} < {pt_max} GeV/#it{{c}}")
     elif pt_min==10 and pt_max==14:
-        lat_small.DrawLatex(0.60, 0.73, f"{pt_min} < #it{{p}}_{{T}} < {pt_max} GeV/#it{{c}}")
+        lat_small.DrawLatex(0.93, 0.73, f"{pt_min} < #it{{p}}_{{T}} < {pt_max} GeV/#it{{c}}")
     leg.Draw()
     leg2.Draw()
     leg_corr.Draw()

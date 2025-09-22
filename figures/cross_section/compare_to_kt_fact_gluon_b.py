@@ -15,7 +15,7 @@ ROOT.gStyle.SetPadTickY(1)
 
 if __name__ == "__main__":
     # Get cross section
-    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_pt_cuts_w_syst_fabio_fix.root')
+    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root')
     h_stat = data_file.Get('h_stat')
     h_stat.SetDirectory(0)
     h_syst = data_file.Get('h_syst')
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     # Draw
     c = ROOT.TCanvas('c', 'c', 600, 600)
     c.SetLogy()
-    h_frame = c.DrawFrame(1, 2.e-3, 23.5, 3.e2, ';#it{p}_{T} (GeV/#it{c});d^{2}#sigma/d#it{p}_{T}d#it{y} (#mub GeV^{#minus1}#kern[0.25]{#it{c}})')
+    h_frame = c.DrawFrame(0, 2.e-3, 23.5, 4.e2, ';#it{p}_{T} (GeV/#it{c});d^{2}#it{#sigma}/d#it{p}_{T}d#it{y} (#mub GeV^{#minus1}#kern[0.25]{#it{c}})')
     h_frame.GetXaxis().SetTitleOffset(1.1)
     h_frame.GetYaxis().SetTitleOffset(1.3)
     h_frame.GetXaxis().SetTitleSize(0.04)
@@ -123,10 +123,13 @@ if __name__ == "__main__":
     h_frame.GetYaxis().SetLabelSize(0.04)
 
     g_pred_kt_sum.Draw('same E3')
-    #h_pred_kt_sum.Draw('same e')
+    #h_pred_kt_sum.Draw('same L')
     g_pred_kt_gluon.Draw('same E3')
     #h_pred_kt_gluon.Draw('same e')
     g_pred_kt_beauty.Draw('same E3')
+    g_pred_kt_beauty.Draw('same CX')
+    g_pred_kt_gluon.Draw('same CX')
+    g_pred_kt_sum.Draw('same CX')
     #h_pred_kt_beauty.Draw('same e')
     h_stat.Draw('same p')
     g_syst.Draw('same 5')
@@ -165,7 +168,7 @@ if __name__ == "__main__":
     text_kt.SetTextFont(42)
     text_kt.Draw()
 
-    text_ALICE = ROOT.TLatex(0.15, 0.88, 'ALICE Preliminary')
+    text_ALICE = ROOT.TLatex(0.15, 0.88, 'ALICE')
     text_ALICE.SetNDC()
     text_ALICE.SetTextSize(0.055)
     text_ALICE.SetTextFont(42)
@@ -177,12 +180,18 @@ if __name__ == "__main__":
     text_pp.SetTextFont(42)
     text_pp.Draw()
 
-    text_rapidity = ROOT.TLatex(0.15, 0.8, '|y| < 0.5')
+    text_rapidity = ROOT.TLatex(0.15, 0.8, '|#it{y}| < 0.5')
     text_rapidity.SetNDC()
     text_rapidity.SetTextSize(0.04)
     text_rapidity.SetTextFont(42)
     text_rapidity.Draw()
 
+    text_lumi = ROOT.TLatex(0.15, 0.76, '#font[132]{#it{L}}_{int} = 43 pb^{#minus1}')
+    text_lumi.SetNDC()
+    text_lumi.SetTextSize(0.04) 
+    text_lumi.SetTextFont(42)
+    text_lumi.Draw()
+
     ROOT.gPad.RedrawAxis()
 
-    c.SaveAs('figures/cross_section/cross_section_vs_kt_fact_gluon_b.pdf')
+    c.SaveAs('figures/cross_section/cross_section_vs_kt_fact_gluon_b_DK_MC_fix_evsel.pdf')
