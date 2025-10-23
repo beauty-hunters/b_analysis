@@ -108,17 +108,20 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     decay_channel = ""
     particle_name = ""
     flag_mc_match_rec = -999
+    flag_mc_b_to_dk = -999
 
     if particle == "Bplus":
         pdg_id = 521
         decay_channel = r"\overline{D}^{0} \pi^{\plus}"
         particle_name = "B^{+}"
         flag_mc_match_rec = 4 # prd = partly reco decays
+        flag_mc_b_to_dk = 2
     if particle == "B0":
         pdg_id = 511
         decay_channel = r"D^{-} \pi^{\plus}"
         particle_name = "B^{0}"
-        flag_mc_match_rec = 8 # prd = partly reco decays
+        flag_mc_match_rec = 16 # prd = partly reco decays
+        flag_mc_b_to_dk = 8
 
     pt_mins = cut_set["pt"]["mins"]
     pt_maxs = cut_set["pt"]["maxs"]
@@ -162,6 +165,15 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     df_mc.query(selection_string, inplace=True)
     df_mc_sig = df_mc.query("fFlagMcMatchRec == -1 or fFlagMcMatchRec == 1")
 
+    df_mc_dk = pd.DataFrame()
+    for file in cfg["inputs"]["b_to_dk"]:
+        df_mc_dk = pd.concat([df_mc_dk, pd.read_parquet(file)])
+    df_mc_dk.query(selection_string, inplace=True)
+    df_mc_dk_bkg = df_mc_dk.query(f"fFlagMcMatchRec == {flag_mc_b_to_dk}")
+    df_mc_dk_sig = df_mc_dk.query(f"fFlagMcMatchRec == -1 or fFlagMcMatchRec == 1")
+    if cfg["fit_configs"]["shift_bkg_templ"]:
+        df_mc_dk_bkg["fM"] = df_mc_dk_bkg["fM"] + cfg["fit_configs"]["shift_bkg_templ"]
+
     dfs_prd_bkg, dfs_prd_bkg_orig, fracs_ptint = [], [], []
     correlated_bkgs = cfg["fit_configs"]["correlated_bkgs"]
     den_norm = len(df_mc_sig) * cfg["fit_configs"]["signal_br"]["pdg"] / cfg["fit_configs"]["signal_br"]["sim"]
@@ -173,30 +185,32 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
             df_prd_bkg["fM"] = df_prd_bkg["fM"] + cfg["fit_configs"]["shift_bkg_templ"]
         dfs_prd_bkg_orig.append(df_prd_bkg)
         fracs_ptint.append(len(df_prd_bkg) * bkg["br_pdg"] / bkg["br_sim"] / den_norm)
+
+    # B -> DK
+    den_norm = len(df_mc_dk_sig) * cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["sim"]
+    dfs_prd_bkg_orig.append(df_mc_dk_bkg) # We add to dfs_prd_bkg_orig so that the sampling is properly done
+    fracs_ptint.append(len(df_mc_dk_bkg) * cfg["fit_configs"]["b_to_dk_bkg"]["br_pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["br_sim"] / den_norm)
+
     sum_fracs = sum(fracs_ptint)
     fracs_ptint_norm = [frac / sum_fracs for frac in fracs_ptint]
 
     dfs_prd_bkg_sampled = []
-    if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 1:
-        lengths = [len(df_bkg) for df_bkg in dfs_prd_bkg_orig]
-        min_positive_lenght = min([l for l in lengths if l > 0])
-        sample_fracs = [frac * min_positive_lenght / length / max(fracs_ptint_norm) for frac, length in zip(fracs_ptint_norm, lengths) if length > 0]
-        for frac, length, df_bkg in zip(fracs_ptint_norm, lengths, dfs_prd_bkg_orig):
-            if length > 0:
-                sample_frac = frac * min_positive_lenght / length / max(fracs_ptint_norm) / max(sample_fracs)
-                if sample_frac == 1.:
-                    dfs_prd_bkg_sampled.append(df_bkg)
-                else:
-                    dfs_prd_bkg_sampled.append(
-                        df_bkg.sample(frac=sample_frac, random_state=42))
+    lengths = [len(df_bkg) for df_bkg in dfs_prd_bkg_orig]
+    min_positive_lenght = min([l for l in lengths if l > 0])
+    sample_fracs = [frac * min_positive_lenght / length / max(fracs_ptint_norm) for frac, length in zip(fracs_ptint_norm, lengths) if length > 0]
+    for frac, length, df_bkg in zip(fracs_ptint_norm, lengths, dfs_prd_bkg_orig):
+        if length > 0:
+            sample_frac = frac * min_positive_lenght / length / max(fracs_ptint_norm) / max(sample_fracs)
+            if sample_frac == 1.:
+                dfs_prd_bkg_sampled.append(df_bkg)
+            else:
+                dfs_prd_bkg_sampled.append(
+                    df_bkg.sample(frac=sample_frac, random_state=42))
 
+    if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 1:
         dfs_prd_bkg.append(pd.concat(dfs_prd_bkg_sampled))
     else:
         dfs_prd_bkg = dfs_prd_bkg_orig
-
-    df_mc_dummy_dka = pd.read_parquet(cfg["inputs"]["dummy_corr_bkg"])
-    if cfg["fit_configs"]["shift_bkg_templ"]:
-        df_mc_dummy_dka["fM"] = df_mc_dummy_dka["fM"] + cfg["fit_configs"]["shift_bkg_templ"]
 
     # define output file
     outdir = cfg["outputs"]["directory"]
@@ -249,13 +263,13 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                 if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 0:
                     label_bkg_pdf.insert(i_bkg, bkg["name"])
                 else:
-                    label_bkg_pdf.insert(i_bkg, "Correlated backgrounds")
-
-        data_hdl_dummy_dka = DataHandler(df_mc_dummy_dka, var_name="fM",
-                                         limits=cfg["fit_configs"]["pt_int"]["mass_limits"],
-                                         nbins=cfg["plot_style"]["pt_int"]["n_bins"])
-        bkg_funcs.insert(len(dfs_prd_bkg), "kde_grid")
-        label_bkg_pdf.insert(len(dfs_prd_bkg), r"$\mathrm{B^0\rightarrow D^-K^+}$")        
+                    label_bkg_pdf.insert(i_bkg, "Correlated backgrounds")    
+            if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 0:
+                data_hdl_dka = DataHandler(dfs_prd_bkg[-1], var_name="fM",
+                            limits=cfg["fit_configs"]["pt_int"]["mass_limits"],
+                            nbins=cfg["plot_style"]["pt_int"]["n_bins"])
+                bkg_funcs.insert(len(dfs_prd_bkg) - 1, "kde_grid")
+                label_bkg_pdf.insert(i_bkg, cfg["fit_configs"]["b_to_dk_bkg"]["name"])
 
         fitter_ptint = F2MassFitter(data_hdl,
                                     cfg["fit_configs"]["pt_int"]["signal_funcs"],
@@ -279,14 +293,15 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                     i_bkg, 0,
                     data_hdl_prd_bkg.get_norm() * bkg["br_pdg"] / bkg["br_sim"] / denom
                 )
+            if cfg["fit_configs"]["pt_int"]["bkg_templ_opt"] == 0:
+                fitter_ptint.set_background_kde(len(dfs_prd_bkg)-1, data_hdl_dka)
+                denom = len(df_mc_dk_sig) * cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["sim"]
+                fitter_ptint.fix_bkg_frac_to_signal_pdf(
+                    len(dfs_prd_bkg)-1, 0,
+                    data_hdl_dka.get_norm() * cfg["fit_configs"]["b_to_dk_bkg"]["br_pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["br_sim"] / denom
+                )
 
-        fitter_ptint.set_background_kde(len(dfs_prd_bkg), data_hdl_dummy_dka)
-        fitter_ptint.fix_bkg_frac_to_signal_pdf(
-            len(dfs_prd_bkg), 0,
-            cfg['fit_configs']['frac_dummy_to_sgn']
-        )
-
-        fitter_ptint.set_signal_initpar(0, "sigma", 0.05, limits=[0.03, 0.06])
+        fitter_ptint.set_signal_initpar(0, "sigma", 0.03, limits=[0.02, 0.06])
         fitter_ptint.set_particle_mass(0, pdg_id=pdg_id)
         icombbkg = len(dfs_prd_bkg)
         fitter_ptint.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.2, 0.])
@@ -318,7 +333,6 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     means_mc, means_mc_unc, sigmas_mc, sigmas_mc_unc = [], [], [], []
 
     for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)): #pylint:disable=too-many-nested-blocks
-
         # we first fit MC only
         df_mc_sig_pt = df_mc_sig.query(f"{pt_min} < fPt < {pt_max}")
         data_hdl_mc = DataHandler(df_mc_sig_pt, var_name="fM",
@@ -363,6 +377,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
 
         # then we fit data
         df_pt = df.query(f"{pt_min} < fPt < {pt_max}")
+        df_mc_dk_bkg_pt = df_mc_dk_bkg.query(f"{pt_min} < fPt < {pt_max}")
+        df_mc_dk_sig_pt = df_mc_dk_sig.query(f"{pt_min} < fPt < {pt_max}")
         data_hdl = DataHandler(df_pt, var_name="fM",
                                limits=cfg["fit_configs"]["mass_limits"][ipt],
                                nbins=cfg["plot_style"]["n_bins"][ipt])
@@ -377,6 +393,12 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         fracs_pt = []
         for bkg, df_prd_bkg_orig_pt in zip(correlated_bkgs, dfs_prd_bkg_orig_pt):
             fracs_pt.append(len(df_prd_bkg_orig_pt) * bkg["br_pdg"] / bkg["br_sim"] / den_norm)
+
+        # B -> DK
+        den_norm = len(df_mc_dk_sig_pt) * cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["sim"]
+        # dfs_prd_bkg_orig_pt.append(df_mc_dk_bkg_pt) # We add to dfs_prd_bkg_orig so that the sampling is properly done
+        fracs_pt.append(len(df_mc_dk_bkg_pt) * cfg["fit_configs"]["b_to_dk_bkg"]["br_pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["br_sim"] / den_norm)
+
         sum_fracs = sum(fracs_pt)
         fracs_pt_norm = [frac / sum_fracs for frac in fracs_pt]
 
@@ -401,20 +423,20 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
 
         for i_bkg, (bkg, df_prd_bkg) in enumerate(zip(correlated_bkgs, dfs_prd_bkg_pt)):
             data_hdls_prd_bkg.append(DataHandler(df_prd_bkg, var_name="fM",
-                                                    limits=cfg["fit_configs"]["pt_int"]["mass_limits"],
-                                                    nbins=cfg["plot_style"]["pt_int"]["n_bins"]))
+                                                    limits=cfg["fit_configs"]["mass_limits"][ipt],
+                                                    nbins=cfg["plot_style"]["n_bins"][ipt]))
             bkg_funcs.insert(i_bkg, "kde_grid")
             if cfg["fit_configs"]["bkg_templ_opt"][ipt] == 0:
                 label_bkg_pdf.insert(i_bkg, bkg["name"])
             else:
-                label_bkg_pdf.insert(i_bkg, "Correlated backgrounds")                   
+                label_bkg_pdf.insert(i_bkg, "Correlated backgrounds")
 
-        df_mc_dummy_dka_pt = df_mc_dummy_dka.query(f"{pt_min} < fPt < {pt_max}")
-        data_hdl_dummy_dka_pt = DataHandler(df_mc_dummy_dka_pt, var_name="fM",
-                                         limits=cfg["fit_configs"]["pt_int"]["mass_limits"],
-                                         nbins=cfg["plot_style"]["pt_int"]["n_bins"])
-        bkg_funcs.insert(len(dfs_prd_bkg_pt), "kde_grid")
-        label_bkg_pdf.insert(len(dfs_prd_bkg_pt), r"$\mathrm{B^0\rightarrow D^-K^+}$")        
+        if cfg["fit_configs"]["bkg_templ_opt"][ipt] == 0:
+            data_hdl_dka_pt = DataHandler(dfs_prd_bkg_pt[-1], var_name="fM",
+                        limits=cfg["fit_configs"]["mass_limits"][ipt],
+                        nbins=cfg["plot_style"]["n_bins"][ipt])
+            bkg_funcs.insert(len(dfs_prd_bkg_pt) - 1, "kde_grid")
+            label_bkg_pdf.insert(i_bkg, cfg["fit_configs"]["b_to_dk_bkg"]["name"])    
 
         fitter_pt = F2MassFitter(data_hdl,
                                  cfg["fit_configs"]["signal_funcs"][ipt],
@@ -439,24 +461,31 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                     data_hdl_prd_bkg.get_norm() * bkg["br_pdg"] / bkg["br_sim"] / denom
                 )
 
-        fitter_pt.set_background_kde(len(dfs_prd_bkg_pt), data_hdl_dummy_dka_pt)
-        fitter_pt.fix_bkg_frac_to_signal_pdf(
-            len(dfs_prd_bkg_pt), 0,
-            cfg['fit_configs']['frac_dummy_to_sgn']
-        )
+        if cfg["fit_configs"]["bkg_templ_opt"][ipt] == 0:
+            fitter_pt.set_background_kde(len(dfs_prd_bkg_pt) - 1, data_hdl_dka_pt)
+            denom = len(df_mc_dk_sig_pt) * cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["signal_br"]["sim"]
+            fitter_pt.fix_bkg_frac_to_signal_pdf(
+                len(dfs_prd_bkg_pt) - 1, 0,
+                data_hdl_dka_pt.get_norm() * cfg["fit_configs"]["b_to_dk_bkg"]["br_pdg"] / cfg["fit_configs"]["b_to_dk_bkg"]["br_sim"] / denom
+            )
         
         if not fix_means[ipt]:
             fitter_pt.set_particle_mass(0, pdg_id=pdg_id, limits=[5., 5.56])
         else:
             fitter_pt.set_particle_mass(0, ref_means[ipt], fix=True)
         if not fix_sigmas[ipt]:
-            fitter_pt.set_signal_initpar(0, "sigma", sigmas_mc[ipt], limits=[0.01, 0.1])
+            if pt_min == 1 and pt_max == 2:
+                fitter_pt.set_signal_initpar(0, "sigma", 0.03, limits=[0.01, 0.06])
+            else:
+                fitter_pt.set_signal_initpar(0, "sigma", sigmas_mc[ipt], limits=[0.01, 0.1])
         else:
             fitter_pt.set_signal_initpar(0, "sigma", ref_sigmas[ipt], fix=True)
         fitter_pt.set_signal_initpar(0, "frac", 0.2, limits=[0., 1.])
         if not cfg["fit_configs"]["fix_correlated_bkg_to_signal"][ipt]:
             fitter_pt.set_background_initpar(0, "frac", 0.05, limits=[0., 1.])
         icombbkg = len(dfs_prd_bkg_pt)
+        print(f"icombbkg: {icombbkg}")
+        print(f"bkg_funcs: {bkg_funcs}")
         fitter_pt.set_background_initpar(icombbkg, "lam", -1.2, limits=[-10., 10.])
         fitter_pt.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.2, 0.])
         fitter_pt.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.03])
