@@ -1,0 +1,11 @@
+inputs:
+  cross_section: /home/fchinu/Run3/B0_pp/systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root
+  nnlo_nnll: nnlo_nnll/nnlo_nnll.root
+
+systematics:
+  uncorrelated: ["rawy"]
+  correlated: ["bdt", "single_track", "tracking", "lumi", "br"]
+
+output:
+  dir: cross_section/integrated
+  file_name: integrated_cross_section_nnlo_nnll_w_syst.root

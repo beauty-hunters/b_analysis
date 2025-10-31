@@ -1,0 +1,34 @@
+NNLO+NNLL predictions for B-hadron production at the LHC.
+
+Based on
+
+Open B-Hadron Production at Hadron Colliders in QCD at Next-to-Next-to-Leading-Order and Next-to-Next-to-Leading-Logarithmic Accuracy
+Phys.Rev.Lett. 135 (2025) 16
+arXiv:2411.09684
+
+by
+
+Michał Czakon, Terry Generet, Alexander Mitov and Rene Poncelet
+
+
+The file 'ALICE_histogram.dat' contains the NNLO+NNLL cross section for B0 production at the 13.6 TeV LHC, differential in the transverse momentum of the B0.
+Units: [pb/GeV]
+Cut: |y| < 0.5
+Bins: [1,2,4,6,8,10,14,23.5] GeV
+
+
+The file 'ALICE_extrapolation.dat' contains the corresponding NNLO+NNLL extrapolation factor for the fiducial cross section from [1 GeV, 23.5 GeV] to [0, infinity].
+
+
+The files 'ALICE_LHCb_ratio_X_Y.dat' contain the NNLO+NNLL predictions for the ratio of the spectrum at central rapidity defined above and the corresponding B+ spectrum at the 13 TeV LHC for the rapidity ranges [X,Y].
+
+
+All predictions use a central b-quark mass of 4.92 GeV, the NNPDF3.1 NNLO PDF & alpha_s set (arXiv:1706.00428) and the CGMP FF set (arXiv:2210.06078).
+The uncertainties on all predictions include scale variation, Monte Carlo error, PDF variation, FF variation and the b-quark mass uncertainty.
+The spectrum of 'ALICE_histogram.dat' additionally includes the fragmentation fraction uncertainty.
+
+Each file is structured as follows:
+
+central value 1     negative error 1     positive error 1
+central value 2     negative error 2     positive error 2
+...
