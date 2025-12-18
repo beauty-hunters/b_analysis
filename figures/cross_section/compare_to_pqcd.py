@@ -19,7 +19,7 @@ if __name__ == '__main__':
     data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root')
     h_stat = data_file.Get('h_stat')
     h_stat.SetDirectory(0)
-    h_syst = data_file.Get('h_syst')
+    h_syst = data_file.Get('h_syst_no_br_no_lumi')
     h_syst.SetDirectory(0)
     g_syst = ROOT.TGraphErrors(h_syst)
     data_file.Close()
@@ -142,10 +142,10 @@ if __name__ == '__main__':
     pad_cross_sec.cd()
     pad_cross_sec.SetLogy()
     h_frame = pad_cross_sec.DrawFrame(0, 2.e-2, 23.5, 3.e2, ';#it{p}_{T} (GeV/#it{c});d^{2}#it{#sigma}/d#it{p}_{T}d#it{y} (#mub GeV^{#minus1}#kern[0.25]{#it{c}})')
-    h_frame.GetXaxis().SetTitleOffset(1.1)
-    h_frame.GetYaxis().SetTitleOffset(1.3)
-    h_frame.GetXaxis().SetTitleSize(0.04)
-    h_frame.GetYaxis().SetTitleSize(0.04)
+    h_frame.GetXaxis().SetTitleOffset(1.)
+    h_frame.GetYaxis().SetTitleOffset(1.1)
+    h_frame.GetXaxis().SetTitleSize(0.045)
+    h_frame.GetYaxis().SetTitleSize(0.045)
     h_frame.GetXaxis().SetLabelSize(0.04)
     h_frame.GetYaxis().SetLabelSize(0.04)
     g_pred_kt.Draw('same E2')
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     text_ALICE.SetTextFont(42)
     text_ALICE.Draw()
 
-    text_pp = ROOT.TLatex(0.15, 0.855, 'pp collisions, #sqrt{#it{s}} = 13.6 TeV')
+    text_pp = ROOT.TLatex(0.15, 0.855, 'pp collisions,#kern[0.05]{#sqrt{#it{s}} = 13.6 TeV}')
     text_pp.SetNDC()
     text_pp.SetTextSize(0.04)
     text_pp.SetTextFont(42)
@@ -203,6 +203,18 @@ if __name__ == '__main__':
     text_lumi.SetTextFont(42)
     text_lumi.Draw()
 
+    text_unc_lumi = ROOT.TLatex(0.15, 0.2, '#pm 10% #kern[-0.2]{#font[132]{#it{L}}_{int}} uncertainty')
+    text_unc_lumi.SetNDC()
+    text_unc_lumi.SetTextSize(0.035) 
+    text_unc_lumi.SetTextFont(42)
+    text_unc_lumi.Draw()
+
+    text_unc_br = ROOT.TLatex(0.15, 0.17, '#pm 3.6% BR uncertainty')
+    text_unc_br.SetNDC()
+    text_unc_br.SetTextSize(0.035) 
+    text_unc_br.SetTextFont(42)
+    text_unc_br.Draw()
+
     ROOT.gPad.RedrawAxis()
 
 
@@ -212,10 +224,10 @@ if __name__ == '__main__':
     pad_ratios_axis_label.Draw()
     pad_ratios_axis_label.cd()
     h_frame_axis_label = pad_ratios_axis_label.DrawFrame(0, 0.123, 23.5, 0.9876, ';#it{p}_{T} (GeV/#it{c});')
-    h_frame_axis_label.GetXaxis().SetTitleOffset(1.1)
-    h_frame_axis_label.GetYaxis().SetTitleOffset(1.3)
-    h_frame_axis_label.GetXaxis().SetTitleSize(0.04)
-    h_frame_axis_label.GetYaxis().SetTitleSize(0.04)
+    h_frame_axis_label.GetXaxis().SetTitleOffset(1.)
+    h_frame_axis_label.GetYaxis().SetTitleOffset(1.1)
+    h_frame_axis_label.GetXaxis().SetTitleSize(0.045)
+    h_frame_axis_label.GetYaxis().SetTitleSize(0.045)
     h_frame_axis_label.GetXaxis().SetLabelSize(0.04)
     h_frame_axis_label.GetYaxis().SetLabelSize(0.04)
 
@@ -231,7 +243,7 @@ if __name__ == '__main__':
     pad_ratio_fonll.SetBottomMargin(0)
     pad_ratio_fonll.SetLeftMargin(0.15)
     pad_ratio_fonll.SetTopMargin(0)
-    h_frame_ratio_fonll = pad_ratio_fonll.DrawFrame(0, 0.2, 23.5,2.495, ';#it{p}_{T} (GeV/#it{c});#frac{Data}{FONLL}')
+    h_frame_ratio_fonll = pad_ratio_fonll.DrawFrame(0, 0.2, 23.5,2.995, ';#it{p}_{T} (GeV/#it{c});#frac{Data}{FONLL}')
     h_frame_ratio_fonll.GetXaxis().SetTitleOffset(1.1)
     h_frame_ratio_fonll.GetYaxis().SetTitleOffset(0.45)
     h_frame_ratio_fonll.GetYaxis().SetDecimals(True)
@@ -240,7 +252,7 @@ if __name__ == '__main__':
     h_frame_ratio_fonll.GetYaxis().SetTitleSize(0.16)
     h_frame_ratio_fonll.GetXaxis().SetLabelSize(0.12)
     h_frame_ratio_fonll.GetYaxis().SetLabelSize(0.14)
-    h_frame_ratio_fonll.GetYaxis().SetNdivisions(505)
+    h_frame_ratio_fonll.GetYaxis().SetNdivisions(606)
 
     g_fonll_unc = g_pred_fonll.Clone('g_fonll_unc')
     for i in range(0, g_fonll_unc.GetN()):
@@ -275,7 +287,7 @@ if __name__ == '__main__':
     pad_ratio_gmvfns.SetBottomMargin(0)
     pad_ratio_gmvfns.SetLeftMargin(0.15)
     pad_ratio_gmvfns.SetTopMargin(0)
-    h_frame_ratio_gmvfns = pad_ratio_gmvfns.DrawFrame(0, 0.2, 23.5,2.495, ';#it{p}_{T} (GeV/#it{c});#lower[0.1]{#frac{Data}{mod-#mu_{#lower[-0.2]{R,F}}}}')
+    h_frame_ratio_gmvfns = pad_ratio_gmvfns.DrawFrame(0, 0.2, 23.5,2.995, ';#it{p}_{T} (GeV/#it{c});#lower[0.1]{#frac{Data}{mod-#mu_{#lower[-0.2]{R,F}}}}')
     h_frame_ratio_gmvfns.GetXaxis().SetTitleOffset(1.1)
     h_frame_ratio_gmvfns.GetYaxis().SetTitleOffset(0.45)
     h_frame_ratio_gmvfns.GetYaxis().SetDecimals(True)
@@ -284,7 +296,7 @@ if __name__ == '__main__':
     h_frame_ratio_gmvfns.GetYaxis().SetTitleSize(0.16)
     h_frame_ratio_gmvfns.GetXaxis().SetLabelSize(0.12)
     h_frame_ratio_gmvfns.GetYaxis().SetLabelSize(0.14)
-    h_frame_ratio_gmvfns.GetYaxis().SetNdivisions(505)
+    h_frame_ratio_gmvfns.GetYaxis().SetNdivisions(606)
 
     g_gmvfns_unc = g_pred_gmvfns.Clone('g_gmvfns_unc')
     for i in range(0, g_gmvfns_unc.GetN()):
@@ -319,7 +331,7 @@ if __name__ == '__main__':
     pad_ratio_gmvfns_mt_sacot.SetBottomMargin(0)
     pad_ratio_gmvfns_mt_sacot.SetLeftMargin(0.15)
     pad_ratio_gmvfns_mt_sacot.SetTopMargin(0)
-    h_frame_ratio_gmvfns_mt_sacot = pad_ratio_gmvfns_mt_sacot.DrawFrame(0, 0.2, 23.5,2.495, ';#it{p}_{T} (GeV/#it{c});#lower[0.1]{#frac{Data}{SACOT#kern[0.3]{#it{m}_{T}}}}')
+    h_frame_ratio_gmvfns_mt_sacot = pad_ratio_gmvfns_mt_sacot.DrawFrame(0, 0.2, 23.5,2.995, ';#it{p}_{T} (GeV/#it{c});#lower[0.1]{#frac{Data}{SACOT#kern[0.3]{#it{m}_{T}}}}')
     h_frame_ratio_gmvfns_mt_sacot.GetXaxis().SetTitleOffset(1.1)
     h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetTitleOffset(0.45)
     h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetDecimals(True)
@@ -328,7 +340,7 @@ if __name__ == '__main__':
     h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetTitleSize(0.16)
     h_frame_ratio_gmvfns_mt_sacot.GetXaxis().SetLabelSize(0.12)
     h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetLabelSize(0.14)
-    h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetNdivisions(505)
+    h_frame_ratio_gmvfns_mt_sacot.GetYaxis().SetNdivisions(606)
 
     g_gmvfns_mt_sacot_unc = g_pred_gmvfns_mt_sacot.Clone('g_gmvfns_mt_sacot_unc')
     for i in range(0, g_gmvfns_mt_sacot_unc.GetN()):
@@ -363,7 +375,7 @@ if __name__ == '__main__':
     pad_ratio_kt.SetBottomMargin(0)
     pad_ratio_kt.SetLeftMargin(0.15)
     pad_ratio_kt.SetTopMargin(0)
-    h_frame_ratio_kt = pad_ratio_kt.DrawFrame(0, 0.2, 23.5,2.495, ';#it{p}_{T} (GeV/#it{c});#lower[0.09]{#frac{Data}{#it{k}_{T} fact.}}')
+    h_frame_ratio_kt = pad_ratio_kt.DrawFrame(0, 0.2, 23.5,2.995, ';#it{p}_{T} (GeV/#it{c});#lower[0.09]{#frac{Data}{#it{k}_{T} fact.}}')
     h_frame_ratio_kt.GetXaxis().SetTitleOffset(1.1)
     h_frame_ratio_kt.GetYaxis().SetTitleOffset(0.45)
     h_frame_ratio_kt.GetYaxis().SetDecimals(True)
@@ -372,7 +384,7 @@ if __name__ == '__main__':
     h_frame_ratio_kt.GetYaxis().SetTitleSize(0.16)
     h_frame_ratio_kt.GetXaxis().SetLabelSize(0.12)
     h_frame_ratio_kt.GetYaxis().SetLabelSize(0.14)
-    h_frame_ratio_kt.GetYaxis().SetNdivisions(505)
+    h_frame_ratio_kt.GetYaxis().SetNdivisions(606)
 
     g_kt_unc = g_pred_kt.Clone('g_kt_unc')
     for i in range(0, g_kt_unc.GetN()):
