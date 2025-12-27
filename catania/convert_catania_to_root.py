@@ -5,7 +5,7 @@ import numpy as np
 import ROOT 
 
 def convert_to_root(input_file, output_file):
-    df = pd.read_csv(input_file, delimiter=r"\s+", names=['pT(GeV)', 'min', 'max'])
+    df = pd.read_csv(input_file, delimiter=r"\s+", names=['pT(GeV)', 'max', 'min'])
     df['central'] = (df['min'] + df['max']) / 2
     print(df)
     
