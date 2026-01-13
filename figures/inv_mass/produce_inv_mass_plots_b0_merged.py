@@ -195,10 +195,10 @@ def plot(infile_name, colors, version, pt_mins, pt_maxs):
         
         if pt_min is None and pt_max is None:
             lat_right_align.DrawLatex(0.9, 0.85, "1 < #kern[-0.3]{#it{p}_{T}} < 23.5 GeV/#it{c}")
-            lat_right_align.DrawLatex(0.9, 0.79, f"S = {ry_pt_int:.0f}#kern[0.1]{{#pm {ry_unc_pt_int:.0f}}}")
+            lat_right_align.DrawLatex(0.9, 0.79, f"#it{{S}} = {ry_pt_int:.0f}#kern[0.1]{{#pm {ry_unc_pt_int:.0f}}}")
         else:
             lat_right_align.DrawLatex(0.9, 0.85, f"{pt_min} < #kern[-0.3]{{#it{{p}}_{{T}}}} < {pt_max} GeV/#it{{c}}")
-            lat_right_align.DrawLatex(0.9, 0.79, f"S = {ry[i-1]:.0f}#kern[0.1]{{#pm {ry_unc[i-1]:.0f}}}")
+            lat_right_align.DrawLatex(0.9, 0.79, f"#it{{S}} = {ry[i-1]:.0f}#kern[0.1]{{#pm {ry_unc[i-1]:.0f}}}")
 
         # lat_right_align.DrawLatex(0.3, 0.3, "S = XX #pm X.X")
 
