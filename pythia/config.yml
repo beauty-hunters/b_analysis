@@ -1,0 +1,9 @@
+inputs:
+  folder: b0_production
+  mode: mode2
+
+pt:
+  mins: [0, 1, 2, 4, 6, 8, 10, 14]
+  maxs: [1, 2, 4, 6, 8, 10, 14, 23.5]
+
+output: pythia8_b0_mode2.root
