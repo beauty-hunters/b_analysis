@@ -21,7 +21,7 @@ if __name__ == '__main__':
     min_pt_canvas = 0.3 # for logx scale
 
     # Get cross section
-    data_file = ROOT.TFile.Open('/home/fchinu/Run3/B0_pp/systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root')
+    data_file = ROOT.TFile.Open('/home/fchinu/Run3/B0_pp/systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi_correct_lumi.root')
     h_stat = data_file.Get('h_stat')
     h_syst = data_file.Get('h_syst')
     g_syst = ROOT.TGraphErrors(h_syst)

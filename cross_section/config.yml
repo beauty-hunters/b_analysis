@@ -1,19 +1,27 @@
-rawyield_file: fit/outputs/default/B0_mass23_24_full_dataset.root
-efficiency_file: efficiency/efficiency_i3_i4_from_bdt_test.root
-output_file: cross_section/cross_section_full_23_24_with_bc_cuts.root
+rawyield_file: fit/outputs/DK_MC_enlarged_templates_fullMC/B0_mass23_24_full_dataset.root
+efficiency_file: efficiency/fix_evsel/efficiency_i3_i4_fix_evsel.root
+output_file: cross_section/cross_section_shift_template_with_DK_MC_enlarged_template__fix_evselpt_cuts_fabio_fix_TT_vs_phi_correct_lumi.root
 
 lumi:
-  analysis_results_files: [
-                          'inputs/24_separate/data/AnalysisResults_LHC24_pass1_skimmed.root',
-                          'inputs/24_separate/data/AnalysisResults_LHC23_pass4_skimmed.root'
-                          ]
+  fix_to_value: null
+  analysis_results_files:
+    "2023": ['inputs/24_separate/data/AnalysisResults_LHC23_pass4_skimmed.root']
+    "2024": [
+      'inputs/24_separate/data/AnalysisResults_LHC24_pass1_skimmed.root',
+      'inputs/24ao/AnalysisResults_LHC24ao_pass1_skimmed.root'
+    ]
   zorro_folder: 'hf-data-creator-charm-had-pi-reduced/Zorro'
   folder_bc_cuts: 'bc-selection-task'
   triggers_of_interest: ['fHfBeauty4P']
   h_collisions_path: 'hf-candidate-creator-3prong/hCollisions'
-  tvx_cross_section: 59400000000 # pb
-  lumi_before_bc_cuts: 3035880803644.0  # 13260200827/0.005 + 383840638244    # Can be null for extracting it from analysis_results_files
-  lumi_after_bc_cuts: 2382365588911.0   # 10354007744/0.005 + 311564040111    # Can be null for extracting it from analysis_results_files
+  tvx_cross_section:
+    "2023": 53300000000 # pb
+    "2024": 52800000000 # pb
+  pileup_correction:
+    "2023": 1.0118050793754714
+    "2024": 1.0118050793754714
+  lumi_before_bc_cuts: null  # 13260200827/0.005 + 383840638244    # Can be null for extracting it from analysis_results_files
+  lumi_after_bc_cuts: null   # 10354007744/0.005 + 311564040111    # Can be null for extracting it from analysis_results_files
 
 br:
   b0_todminuspi: 0.00251

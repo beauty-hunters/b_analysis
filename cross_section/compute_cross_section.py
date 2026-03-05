@@ -26,23 +26,29 @@ def main(config_file_name):
     with open(config_file_name, 'r', encoding='utf-8') as yml_config_file:
         config = yaml.load(yml_config_file, yaml.FullLoader)
 
-    analysis_results_files = config['lumi']['analysis_results_files']
-    n_events = get_n_events_from_zorro(
-        analysis_results_files, config['lumi']['zorro_folder'],
-        config['lumi']['triggers_of_interest'], config['lumi']['h_collisions_path']
-    )
-    int_lumi_before_bc = n_events/config['lumi']['tvx_cross_section']
+    int_lumis_before_bc = []
+    int_lumis_after_bc = []
+    for year, analysis_results_files in config['lumi']['analysis_results_files'].items():
+        n_events = get_n_events_from_zorro(
+            analysis_results_files, config['lumi']['zorro_folder'],
+            config['lumi']['triggers_of_interest'], config['lumi']['h_collisions_path']
+        )
+        int_lumis_before_bc.append(n_events/config['lumi']['tvx_cross_section'][year] * config['lumi']['pileup_correction'][year])
+
+
+    int_lumi_before_bc = sum(int_lumis_before_bc)
+    int_lumi_after_bc = sum(int_lumis_after_bc)
 
     if config['lumi']['lumi_before_bc_cuts'] is None or config['lumi']['lumi_after_bc_cuts'] is None:
         lumi_before_bc, lumi_after_bc = 0, 0
-        for file in analysis_results_files:
-            infile = ROOT.TFile.Open(file)
-            lumi_before_bc += infile.Get(f"{config['lumi']['folder_bc_cuts']}/hLumiTVX").Integral()
-            lumi_after_bc += infile.Get(f"{config['lumi']['folder_bc_cuts']}/hLumiTVXafterBCcuts").Integral()
-            infile.Close()
-        
+        for year, analysis_results_files in config['lumi']['analysis_results_files'].items():
+            for file in analysis_results_files:
+                infile = ROOT.TFile.Open(file)
+                lumi_before_bc += infile.Get(f"{config['lumi']['folder_bc_cuts']}/hLumiTVX").Integral()
+                lumi_after_bc += infile.Get(f"{config['lumi']['folder_bc_cuts']}/hLumiTVXafterBCcuts").Integral()
+                infile.Close()
+
         int_lumi_after_bc = int_lumi_before_bc * lumi_after_bc / lumi_before_bc
-    
     else:
         int_lumi_after_bc = int_lumi_before_bc * config['lumi']['lumi_after_bc_cuts'] / config['lumi']['lumi_before_bc_cuts']
 

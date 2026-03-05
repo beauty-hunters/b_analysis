@@ -16,7 +16,7 @@ ROOT.gStyle.SetPadTickY(1)
 if __name__ == '__main__':
 
     # Get cross section
-    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root')
+    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi_correct_lumi.root')
     h_stat = data_file.Get('h_stat')
     h_stat.SetDirectory(0)
     h_syst = data_file.Get('h_syst_no_br_no_lumi')
@@ -197,13 +197,13 @@ if __name__ == '__main__':
     text_rapidity.SetTextFont(42)
     text_rapidity.Draw()
 
-    text_lumi = ROOT.TLatex(0.15, 0.785, '#font[132]{#it{L}}_{int} = 43 pb^{#minus1}')
+    text_lumi = ROOT.TLatex(0.15, 0.785, '#font[132]{#it{L}}_{int} = 49.3 pb^{#minus1}')
     text_lumi.SetNDC()
     text_lumi.SetTextSize(0.04) 
     text_lumi.SetTextFont(42)
     text_lumi.Draw()
 
-    text_unc_lumi = ROOT.TLatex(0.15, 0.2, '#pm 10% #kern[-0.2]{#font[132]{#it{L}}_{int}} uncertainty')
+    text_unc_lumi = ROOT.TLatex(0.15, 0.2, '#pm 3.9% #kern[-0.2]{#font[132]{#it{L}}_{int}} uncertainty')
     text_unc_lumi.SetNDC()
     text_unc_lumi.SetTextSize(0.035) 
     text_unc_lumi.SetTextFont(42)

@@ -16,7 +16,7 @@ ROOT.gStyle.SetPadTickY(1)
 if __name__ == '__main__':
 
     # Get cross section
-    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi.root')
+    data_file = ROOT.TFile.Open('systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi_correct_lumi.root')
     h_stat = data_file.Get('h_stat')
     h_stat.SetDirectory(0)
     h_syst = data_file.Get('h_syst_no_br_no_lumi')
@@ -42,6 +42,16 @@ if __name__ == '__main__':
     epos_file = ROOT.TFile.Open('epos4hq/EPOS4HQ_B0pred_pp13dot6TeV_pp_coal_frag.root')
     g_pred_epos = epos_file.Get('graph_bzero_y05')
     epos_file.Close()
+
+    mode2_file = ROOT.TFile.Open('pythia/pythia8_b0_mode2.root')
+    h_pred_mode2 = mode2_file.Get('hCrossSection')
+    h_pred_mode2.SetDirectory(0)
+    mode2_file.Close()
+
+    monash_file = ROOT.TFile.Open('pythia/pythia8_b0_monash.root')
+    h_pred_monash = monash_file.Get('hCrossSection')
+    h_pred_monash.SetDirectory(0)
+    monash_file.Close()
 
     pt_bins = np.append(np.asarray(g_pred_epos.GetX(), 'd') - np.asarray(g_pred_epos.GetEXlow(), 'd'), g_pred_epos.GetX()[g_pred_epos.GetN()-1] + g_pred_epos.GetEXhigh()[g_pred_epos.GetN()-1])
     h_pred_epos = ROOT.TH1F('h_pred_epos', 'h_pred_epos', g_pred_epos.GetN(), pt_bins)
@@ -150,6 +160,20 @@ if __name__ == '__main__':
     h_pred_ampt_line_66.SetMarkerSize(0)
     h_pred_ampt_line_66.SetMarkerColorAlpha(ROOT.kBlue+3, 0.)
 
+    h_pred_mode2.SetLineColor(ROOT.kOrange-3)
+    h_pred_mode2.SetLineWidth(2)
+    h_pred_mode2.SetLineStyle(1)
+    h_pred_mode2.SetMarkerStyle(ROOT.kOpenSquare)
+    h_pred_mode2.SetMarkerSize(1.)
+    h_pred_mode2.SetMarkerColor(ROOT.kOrange-3)
+
+    h_pred_monash.SetLineColor(ROOT.kOrange+4)
+    h_pred_monash.SetLineWidth(2)
+    h_pred_monash.SetLineStyle(1)
+    h_pred_monash.SetMarkerStyle(ROOT.kOpenCircle)
+    h_pred_monash.SetMarkerSize(1.)
+    h_pred_monash.SetMarkerColor(ROOT.kOrange+4)
+
     # Draw
     c = ROOT.TCanvas('c', 'c', 900, 600)
     pad_cross_sec = ROOT.TPad('pad_cross_sec', 'pad_cross_sec', 0, 0, 0.5, 1)
@@ -170,12 +194,16 @@ if __name__ == '__main__':
     # g_pred_ampt_48.DrawClone('same E3L')
     h_pred_ampt_48.Draw('same e')
     # g_pred_ampt_66.DrawClone('same E3L')
-    h_stat.Draw('same p')
+    h_stat.DrawClone('same p')
     g_syst.Draw('same 5')
     h_pred_epos.Draw('same EX0')
     h_pred_ampt_48.Draw('same EX0')
     h_pred_ampt_66.DrawClone('same e')
     h_pred_ampt_66.Draw('same EX0')
+    # h_pred_mode2.DrawClone('same e')
+    # h_pred_mode2.Draw('same EX0')
+    # h_pred_monash.DrawClone('same e')
+    # h_pred_monash.Draw('same EX0')
 
 
     ROOT.gStyle.SetLineStyleString(11,"40 20")
@@ -194,6 +222,8 @@ if __name__ == '__main__':
     leg.AddEntry(h_pred_epos, 'EPOS4HQ', 'pl')
     leg.AddEntry(h_pred_ampt_48, 'AMPT, #kern[-0.07]{#it{m}_{b} = 4.8 GeV/#it{c}^{2}}', 'pl')
     leg.AddEntry(h_pred_ampt_66, 'AMPT, #kern[-0.07]{#it{m}_{b} = 6.6 GeV/#it{c}^{2}}', 'pl')
+    # leg.AddEntry(h_pred_mode2, 'PYTHIA mode 2', 'pl')
+    # leg.AddEntry(h_pred_monash, 'PYTHIA Monash', 'pl')
     leg.Draw()
 
     # Add the text
@@ -221,13 +251,13 @@ if __name__ == '__main__':
     text_rapidity.SetTextFont(42)
     text_rapidity.Draw()
 
-    text_lumi = ROOT.TLatex(0.15, 0.785, '#font[132]{#it{L}}_{int} = 43 pb^{#minus1}')
+    text_lumi = ROOT.TLatex(0.15, 0.785, '#font[132]{#it{L}}_{int} = 49.3 pb^{#minus1}')
     text_lumi.SetNDC()
     text_lumi.SetTextSize(0.04) 
     text_lumi.SetTextFont(42)
     text_lumi.Draw()
 
-    text_unc_lumi = ROOT.TLatex(0.15, 0.2, '#pm 10% #kern[-0.2]{#font[132]{#it{L}}_{int}} uncertainty')
+    text_unc_lumi = ROOT.TLatex(0.15, 0.2, '#pm 3.9% #kern[-0.2]{#font[132]{#it{L}}_{int}} uncertainty')
     text_unc_lumi.SetNDC()
     text_unc_lumi.SetTextSize(0.035) 
     text_unc_lumi.SetTextFont(42)
