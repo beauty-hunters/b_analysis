@@ -15,8 +15,8 @@ lumi:
   triggers_of_interest: ['fHfBeauty4P']
   h_collisions_path: 'hf-candidate-creator-3prong/hCollisions'
   tvx_cross_section:
-    "2023": 53300000000 # pb
-    "2024": 52800000000 # pb
+    "2023": 54000000000 # pb
+    "2024": 53600000000 # pb
   pileup_correction:
     "2023": 1.0118050793754714
     "2024": 1.0118050793754714

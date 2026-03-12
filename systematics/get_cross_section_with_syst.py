@@ -10,6 +10,11 @@ def get_cross_sec_with_syst(config_file_name):
         h_lumi_before_bc = f.Get('h_lumi_before_bc')
         h_lumi_after_bc = f.Get('h_lumi_after_bc')
 
+    # set correct lumi uncertainty
+    for i in range(1, h_lumi_before_bc.GetNbinsX()+1):
+        h_lumi_before_bc.SetBinError(i, h_lumi_before_bc.GetBinContent(i) * config["lumi_unc"])
+        h_lumi_after_bc.SetBinError(i, h_lumi_after_bc.GetBinContent(i) * config["lumi_unc"])
+
     # Get systematics histograms (pt dependent)
     h_systs_no_br_no_lumi = {}
     h_systs_rel_no_br_no_lumi = {}
