@@ -186,7 +186,7 @@ if __name__ == "__main__":
     text_rapidity.SetTextFont(42)
     text_rapidity.Draw()
 
-    text_lumi = ROOT.TLatex(0.15, 0.76, '#font[132]{#it{L}}_{int} = 49.3 pb^{#minus1}')
+    text_lumi = ROOT.TLatex(0.15, 0.76, '#font[132]{#it{L}}_{int} = 48.5 pb^{#minus1}')
     text_lumi.SetNDC()
     text_lumi.SetTextSize(0.04) 
     text_lumi.SetTextFont(42)
