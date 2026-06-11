@@ -123,7 +123,7 @@ def download_and_merge(input_file, num_workers, suffix, n_merged_files, is_slim,
         os.system(f"echo {file} >> files_to_merge_{nbunch}.txt")
 
     if nbunch > 1:
-        for bunch in range(nbunch):
+        for bunch in range(1, nbunch+1):
             os.system(f"o2-aod-merger --input files_to_merge_{bunch}.txt --output "
                       f"AO2D{suffix}_{bunch}.root --max-size 100000000 --skip-parent-files-list")
     else:
