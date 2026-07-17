@@ -96,6 +96,7 @@ AODNAMENOPATH=${AODNAMENOPATH[$LASTIDX]}
 IFS='_' read -ra SUFFIX <<< $AODNAMENOPATH
 SUFFIX=${SUFFIX[0]}
 SUFFIX=$(echo "$AODNAMENOPATH" | sed "s/$SUFFIX//g")
+SUFFIX="${SUFFIX%.root}_${PARTICLE}.root"
 
 # Add new line to the end of the file, if there isn't one
 sed -i -e '$a\' "$FILENAME"
@@ -131,6 +132,8 @@ else
     DAU="k"
     if [ "$PARTICLE" == "bs" ]; then
         DAU="phi"
+    elif [ "$PARTICLE" == "b0" ]; then
+        DAU="k0-star"
     fi
     parallel -j "$JOBS" 'mkdir -p output_{#} && cd output_{#} && o2-analysis-hf-task-'"$PARTICLE"'-to-jpsi-'"$DAU"'-reduced '"$COMMONCONFIGS"' | o2-analysis-hf-candidate-creator-b-to-jpsi-reduced '"$COMMONCONFIGS"' --aod-writer-json ../OutputDirector_'"$PARTICLE"'_jpsi.json --resources-monitoring 2 --fairmq-ipc-prefix . --aod-file @../{1} > log_{#}.txt 2>&1 && cd ..' ::: ${INPUTNAMES[@]}
 fi
