@@ -205,7 +205,7 @@ def plot(infile_name, colors, version, pt_mins, pt_maxs):
     canv_masses.cd(2)
     lat.DrawLatex(0.5, 0.9, "ALICE")
     lat_small.DrawLatex(0.5, 0.84,
-                        "pp,#kern[0.04]{#sqrt{#it{s}} = 13.6 TeV},#kern[0.09]{#font[132]{#it{L}}_{int} = 43 pb^{#minus1}}")
+                        "pp,#kern[0.04]{#sqrt{#it{s}} = 13.6 TeV},#kern[0.09]{#font[132]{#it{L}}_{int} = 48.5 pb^{#minus1}}")
 
 
     leg_corr = ROOT.TLegend(0.25, 0.1, 0.55, 0.5)

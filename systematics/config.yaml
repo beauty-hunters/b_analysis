@@ -1,0 +1,16 @@
+inputs:
+  cross_section_file: cross_section/cross_section_shift_template_with_DK_MC_enlarged_template__fix_evselpt_cuts_fabio_fix_TT_vs_phi_correct_lumi.root
+  syst_files:
+    bdt: systematics/bdt/outputs/merged_low_high_pt/bdt_systematic.root
+    rawy: systematics/raw_yields/outputs/merge_finer_pt_high_pt_low_pt/raw_yields_systematic.root
+    single_track: systematics/single_track_selections/merge_finer_pt_high_pt_low_pt/results.root
+
+tracking: 0.04
+lumi_unc: 0.039
+br:
+  - value: 2.51e-3 # B0 -> D- pi+
+    unc: 0.08e-3
+  - value: 9.38e-2 # D- -> K+ pi- pi-
+    unc: 0.16e-2
+
+output_name: systematics/cross_section_default_DK_MC_enlarged_templates_fix_evsel_pt_cuts_w_syst_fabio_fix_TT_vs_phi_correct_lumi.root
