@@ -1,4 +1,5 @@
 particle: "B0"
+decaytojpsi: false
 
 inputs:
   data: [ML/application/default/LHC24_B0ToDPi_pT_0_6_ModelApplied.parquet.gzip,
