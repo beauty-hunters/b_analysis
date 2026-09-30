@@ -13,8 +13,7 @@ import yaml
 from hist import Hist
 from matplotlib.offsetbox import AnchoredText
 import zfit
-from flarefly.data_handler import DataHandler
-from flarefly.fitter import F2MassFitter
+from flarefly import F2MassFitter, DataHandler
 
 def create_hist(pt_lims, contents, errors, label_pt=r"$p_\mathrm{T}~(\mathrm{GeV}/c)$"):
     """
@@ -75,11 +74,30 @@ def add_info_on_canvas(axs, loc, system, pt_min, pt_max, fitter=None):
         text += fr"$\chi^2 / \mathrm{{ndf}} =${chi2:.2f} / {ndf} $\simeq$ {chi2/ndf:.2f}""\n"
 
     text += "\n\n"
-    text += xspace + system + ", " + r"$\sqrt{s} = 13.6$ TeV" + "\n"
-    text += xspace + fr"{pt_min:.0f} < $p_{{\mathrm{{T}}}}$ < {pt_max:.0f} GeV/$c$, $|y|$ < 0.5""\n"
+    text += xspace + system + ", " + r"$\sqrt{s} = 5.36$ TeV" + "\n"
+    text += xspace + fr"{pt_min:.0f} < $p_{{\mathrm{{T}}}}$ < {pt_max:.0f} GeV/$c$, $|y|$ < 0.8""\n"
 
     anchored_text = AnchoredText(text, loc=loc, frameon=False)
     axs.add_artist(anchored_text)
+
+
+def get_sweights_df(fitter, df, mass_limits):
+    """
+    Get the sweights of a fit as a DataFrame indexed like the fitted candidates
+
+    Parameters
+    ----------
+
+    - fitter (F2MassFitter): fitter after the fit
+    - df (pandas.DataFrame): candidates given to the fitter
+    - mass_limits (list): mass limits of the fit, candidates outside are dropped by zfit
+    """
+    df_in_range = df.query(f"{mass_limits[0]} <= fM <= {mass_limits[1]}")
+    sweights = pd.DataFrame({name: np.asarray(sw) for name, sw in fitter.get_sweights().items()})
+    assert len(sweights) == len(df_in_range), \
+        f"{len(sweights)} sweights for {len(df_in_range)} candidates in the fit range"
+    sweights.index = df_in_range.index
+    return sweights
 
 
 def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too-many-branches
@@ -118,9 +136,9 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         flag_mc_b_to_dk = 2
     if particle == "B0":
         pdg_id = 511
-        decay_channel = r"J/\psi K*^{0}" if cfg["decaytojpsi"] else r"\overline{D}^{0} \pi^{\plus}"
+        decay_channel = r"J/\psi K*^{0}" if cfg["decaytojpsi"] else r"D^{-} \pi^{\plus}"
         particle_name = "B^{0}"
-        flag_mc_match_rec = 16 # prd = partly reco decays
+        flag_mc_match_rec = 32 # prd = partly reco decays
         flag_mc_b_to_dk = 8
 
     pt_mins = cut_set["pt"]["mins"]
@@ -136,6 +154,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
             selection_string += f" or ({pt_min} < fPt < {pt_max}) "
         for cut in cuts:
             selection_string += f" and {cut_set[cut]['mins'][ipt]} < {cut} < {cut_set[cut]['maxs'][ipt]}"
+    sweights = {}
+    produce_sweights = cfg["outputs"]["produce_sweights"]
 
     ref_means = [0.03] * len(pt_mins)
     ref_sigmas = [0.03] * len(pt_mins)
@@ -161,7 +181,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     # load data
     df = pd.DataFrame()
     for file in cfg["inputs"]["data"]:
-        df = pd.concat([df, pd.read_parquet(file)])
+        # continuous index over all input files, used to match the sweights to the candidates
+        df = pd.concat([df, pd.read_parquet(file)], ignore_index=True)
     df.query(selection_string, inplace=True)
 
     # load mc and build correlated-background templates
@@ -233,6 +254,12 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     file_root = uproot.recreate(outfile_name)
     file_root.close()
 
+    # keep a copy of the configs next to the outputs for reproducibility
+    with open(os.path.join(outdir, f"config_fit{cfg['outputs']['suffix']}.yml"), "w") as f:  # pylint: disable=unspecified-encoding
+        yaml.dump(cfg, f, sort_keys=False)
+    with open(os.path.join(outdir, f"cutset{cfg['outputs']['suffix']}.yml"), "w") as f:  # pylint: disable=unspecified-encoding
+        yaml.dump(cut_set, f, sort_keys=False)
+
     # we first perform a pT-integrated fit
     if cfg["fit_configs"]["pt_int"]["activate"]: #pylint:disable=too-many-nested-blocks
         # we first fit MC only
@@ -243,7 +270,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                        ["doublegaus"],
                                        ["nobkg"],
                                        name=f"{particle}_mc_ptint",
-                                       label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"])
+                                       label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"],
+                                       extended=cfg["fit_configs"]["pt_int"]["extended"])
         fitter_mc_ptint.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.10])
         fitter_mc_ptint.set_signal_initpar(0, "sigma2", 0.085, limits=[0.01, 0.25])
         fitter_mc_ptint.set_particle_mass(0, pdg_id=pdg_id)
@@ -296,7 +324,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                     bkg_funcs,
                                     name=f"{particle}_ptint",
                                     label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"],
-                                    label_bkg_pdf=label_bkg_pdf)
+                                    label_bkg_pdf=label_bkg_pdf,
+                                    extended=cfg["fit_configs"]["pt_int"]["extended"])
 
         if use_corr_bkg_ptint:
             for i_bkg, (bkg, data_hdl_prd_bkg) in enumerate(zip(correlated_bkgs, data_hdls_prd_bkg)):
@@ -337,20 +366,24 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                 show_extra_info=True,
                 extra_info_loc=["lower right", "lower left"]
             )
-            add_info_on_canvas(axs, "upper left", "pp", pt_mins[0], pt_maxs[-1])
+            add_info_on_canvas(axs, "upper left", "Pb-Pb", pt_mins[0], pt_maxs[-1])
 
             fig_res, axs_res = fitter_ptint.plot_raw_residuals(
                 style="ATLAS",
                 figsize=(8, 8),
                 axis_title=rf"$M(\mathrm{{{decay_channel}}})$ (GeV/$c^2$)"
             )
-            add_info_on_canvas(axs_res, "upper left", "pp", pt_mins[0], pt_maxs[-1])
+            add_info_on_canvas(axs_res, "upper left", "Pb-Pb", pt_mins[0], pt_maxs[-1])
 
             fig.savefig(os.path.join(outdir, f"{particle}_mass_ptint.pdf"))
             fig_res.savefig(os.path.join(outdir, f"{particle}_massres_ptint.pdf"))
 
             fitter_ptint.dump_to_root(
                 outfile_name, option="update", suffix="_ptint")
+        
+            if produce_sweights:
+                sweights["pt_int"] = get_sweights_df(
+                    fitter_ptint, df, cfg["fit_configs"]["pt_int"]["mass_limits"])
 
     raw_yields, raw_yields_unc = [], []
     signif, signif_unc, s_over_b, s_over_b_unc = [], [], [], []
@@ -370,7 +403,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                     ["doublegaus"],
                                     ["nobkg"],
                                     name=f"{particle}_mc_pt{pt_min:.0f}_{pt_max:.0f}",
-                                    label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"])
+                                    label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"],
+                                    extended=cfg["fit_configs"]["extended"][ipt])
         fitter_mc_pt.set_signal_initpar(0, "sigma1", 0.03, limits=[0.01, 0.10])
         fitter_mc_pt.set_signal_initpar(0, "sigma2", 0.085, limits=[0.01, 0.25])
         fitter_mc_pt.set_particle_mass(0, pdg_id=pdg_id)
@@ -478,7 +512,8 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
                                  bkg_funcs,
                                  name=f"{particle}_pt{pt_min:.0f}_{pt_max:.0f}",
                                  label_signal_pdf=[rf"$\mathrm{{{particle_name}}}$ signal"],
-                                 label_bkg_pdf=label_bkg_pdf
+                                 label_bkg_pdf=label_bkg_pdf,
+                                 extended=cfg["fit_configs"]["extended"][ipt]
                                  )
         if use_corr_bkg_pt:
             for i_bkg, (bkg, data_hdl_prd_bkg) in enumerate(zip(correlated_bkgs, data_hdls_prd_bkg)):
@@ -562,6 +597,9 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
 
             fitter_pt.dump_to_root(
                 outfile_name, option="update", suffix=f"_pt{pt_min:.0f}_{pt_max:.0f}")
+            if produce_sweights:
+                sweights[f"pt{pt_min*10:.0f}_{pt_max*10:.0f}"] = get_sweights_df(
+                    fitter_pt, df_pt, cfg["fit_configs"]["mass_limits"][ipt])
 
     file_root = uproot.update(outfile_name)
     file_root["h_rawyields"] = create_hist(pt_lims, raw_yields, raw_yields_unc)
@@ -572,6 +610,13 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
     file_root["h_means_mc"] = create_hist(pt_lims, means_mc, means_mc_unc)
     file_root["h_sigmas_mc"] = create_hist(pt_lims, sigmas_mc, sigmas_mc_unc)
     file_root.close()
+
+    if produce_sweights:
+        sweights_outfile_name = os.path.join(outdir,
+                                f"{particle}_sweights{cfg['outputs']['suffix']}.parquet")
+        sweights_df = pd.concat(
+            [sw.assign(pt_bin=pt_bin) for pt_bin, sw in sweights.items()])
+        sweights_df.to_parquet(sweights_outfile_name, index=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")

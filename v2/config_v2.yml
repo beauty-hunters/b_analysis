@@ -1,0 +1,13 @@
+inputs:
+  data: [
+    data.parquet
+  ]
+  sweights: [
+    sweights.parquet
+  ]
+  resolution:
+    file_name: resolution.root
+    hist_name: FT0c_FT0a_TPCtot/histo_reso
+cutset_file_name: config/cutset.yaml
+
+output_file_name: output.root
