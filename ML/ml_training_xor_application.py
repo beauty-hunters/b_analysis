@@ -78,6 +78,8 @@ class MlCommon:
         # input
         self.tree_name = config["tree_name"]
         self.folder_name = config["folder_name"]
+        # preselections
+        self.preselections = config["preselections"] if config["preselections"] != "" else None
         # pt binning
         pt_bins_limits = enforce_list(config["pt_bins_limits"])
         self.pt_bins = [[a, b] for a, b in zip(pt_bins_limits[:-1], pt_bins_limits[1:])]
@@ -111,7 +113,6 @@ class MlTraining(MlCommon):
             pt_bins_limits = enforce_list(config_train["pt_bins_limits"])
             self.pt_bins = [[a, b] for a, b in zip(pt_bins_limits[:-1], pt_bins_limits[1:])]
         self.infile_names = config_train["input"]
-        self.queries = config_train["query"]
 
         self.seed_split = config_train["seed_split"]
         # (hyper)parameters
@@ -147,9 +148,6 @@ class MlTraining(MlCommon):
             if label not in self.queries:
                 print(f"\033[91mERROR: no query defined for the '{label}' class!\033[0m")
                 sys.exit()
-        if "common" not in self.queries:
-            print("\033[91mERROR: the 'common' query must be defined (set it to null if not needed)!\033[0m")
-            sys.exit()
         # class balance
         if self.share not in ("equal", "all_signal"):
             print(f"\033[91mERROR: class_balance option {self.share} not implemented\033[0m")
@@ -193,8 +191,8 @@ class MlTraining(MlCommon):
                 tree_name=self.tree_name,
                 folder_name=self.folder_name
             ).get_subset(
-                f"({self.queries[label]}) and ({self.queries['common']})"
-                if self.queries["common"] else self.queries[label]
+                f"({self.queries[label]}) and ({self.preselections})"
+                if self.preselections else self.queries[label]
             )
             handlers[label].slice_data_frame(self.name_pt_var, self.pt_bins, True)
 
@@ -562,12 +560,22 @@ class MlApplication(MlCommon):
 
         for infile_name, data_tag in zip(self.infile_names, self.data_tags):
             print(f"Loading and preparing data file {infile_name}: ...", end="\r")
-            hdl_data = TreeHandler(file_name=infile_name, tree_name=self.tree_name, folder_name=self.folder_name)
+            hdl_data = TreeHandler(
+                file_name=infile_name,
+                tree_name=self.tree_name,
+                folder_name=self.folder_name
+            ).get_subset( # ensure same preselections used for training
+                self.preselections
+            )
             cols_to_merge = []
             if self.merge_mc_with_check_decay:
                 try:
                     hdl_data_check_decay = TreeHandler(
-                        file_name=infile_name, tree_name=self.tree_name_check_decay, folder_name=self.folder_name
+                        file_name=infile_name,
+                        tree_name=self.tree_name_check_decay,
+                        folder_name=self.folder_name
+                    ).get_subset( # ensure same preselections used for training
+                        self.preselections
                     )
                     cols_to_merge = ["fPdgCodeBeautyMother", "fPdgCodeCharmMother"]
                     hdl_data.set_data_frame(pd.concat(
