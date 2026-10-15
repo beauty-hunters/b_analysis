@@ -7,6 +7,7 @@ common:
   tree_name: O2hfcanddplite
   folder_name: DF*
   column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec"]
+  preselections: "fCandidateSelFlag == 7 and fNSigTpcTofPi0 < 50 and fNSigTpcTofKa1 < 50 and fNSigTpcTofPi2 < 50 and fDecayLength < 2" # if no preselections set to null or an empty string
 
 train_ml:
   input:
@@ -21,7 +22,6 @@ train_ml:
     ]
 
   query:
-    common: fCandidateSelFlag == 7 and fNSigTpcTofPi0 < 50 and fNSigTpcTofKa1 < 50 and fNSigTpcTofPi2 < 50 and fDecayLength < 2
     Bkg: (fM < 1.81 or fM > 1.95)
     Prompt: fOriginMcRec == 1 and not (fPt > 5 and (fM < 1.65 or fM > 2.2))
     FD: fPdgBhadMotherPart == 2 and not (fPt > 5 and (fM < 1.65 or fM > 2.2))

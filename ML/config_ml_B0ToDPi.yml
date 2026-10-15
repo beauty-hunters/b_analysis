@@ -7,6 +7,7 @@ common:
   tree_name: O2hfredcandb0lite
   folder_name: DF*
   column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec"]
+  preselections: "fCpa > 0.8 and fChi2PCA < 0.1 and fDecayLength < 10" # if no preselections set to null or an empty string
 
 train_ml:
   input:
@@ -18,8 +19,7 @@ train_ml:
     ]
 
   query:
-    common: "fCpa > 0.8 and fChi2PCA < 0.1 and fDecayLength < 10"
-    Bkg: fM < 5.0 or fM > 5.56
+    Bkg: "fM < 5.0 or fM > 5.56"
     Signal: fOriginMcRec == 1
 
   pt_bins_limits: null  # to override common pt binning; set to null else
