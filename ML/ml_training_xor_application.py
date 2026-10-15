@@ -113,6 +113,7 @@ class MlTraining(MlCommon):
             pt_bins_limits = enforce_list(config_train["pt_bins_limits"])
             self.pt_bins = [[a, b] for a, b in zip(pt_bins_limits[:-1], pt_bins_limits[1:])]
         self.infile_names = config_train["input"]
+        self.queries = config_train["query"]
 
         self.seed_split = config_train["seed_split"]
         # (hyper)parameters
