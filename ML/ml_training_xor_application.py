@@ -79,7 +79,7 @@ class MlCommon:
         self.tree_name = config["tree_name"]
         self.folder_name = config["folder_name"]
         # preselections
-        self.preselections = config["preselections"] if config["preselections"] != "" else None
+        self.preselections = config["preselections"] if config["preselections"] else None
         # pt binning
         pt_bins_limits = enforce_list(config["pt_bins_limits"])
         self.pt_bins = [[a, b] for a, b in zip(pt_bins_limits[:-1], pt_bins_limits[1:])]
