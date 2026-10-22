@@ -7,7 +7,7 @@ common:
   tree_name: O2hfredcandlblite
   folder_name: DF*
   column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec"]
-  preselections: "fCpa > 0.8 and fChi2PCA < 0.1 and fDecayLength < 10 and fProng0MlScoreNonprompt > 0.4" # if no preselections set to null or an empty string
+  preselections: "fCpa > 0.85 and fChi2PCA < 0.1 and fDecayLength < 10 and fProng0MlScoreNonprompt > 0.4 and fPtBach > 0.5" # if no preselections set to null or an empty string
 
 train_ml:
   input:
