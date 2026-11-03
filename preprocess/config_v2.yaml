@@ -1,0 +1,34 @@
+inputs:
+  data: 
+    files: [
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC23_PbPb_050_775647_b0_bdt_applied.root,
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC24_PbPb_050_775647_b0_bdt_applied.root,
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC25_PbPb_050_775647_b0_bdt_applied.root
+    ]
+    treename: O2hfredcandb0lite
+  resolution:
+    files: [
+      v2/resolutions/2023.root,
+      v2/resolutions/2024.root,
+      v2/resolutions/2025.root
+    ]
+    histname: FT0c_FV0a_TPCtot/histo_reso
+
+shifts: [27.2, 22.6, null] # in MeV/c2
+centralities: [0, 20, 50]
+
+outputs:
+  [
+    [
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC23_PbPb_020_775647_b0_bdt_applied.parquet,
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC23_PbPb_2050_775647_b0_bdt_applied.parquet,
+    ],
+    [
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC24_PbPb_020_775647_b0_bdt_applied.parquet,
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC24_PbPb_2050_775647_b0_bdt_applied.parquet,
+    ],
+    [
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC25_PbPb_020_775647_b0_bdt_applied.parquet,
+      inputs/data/050/b0_bdt_applied/Train775647/AO2D_LHC25_PbPb_2050_775647_b0_bdt_applied.parquet,
+    ],
+  ]
