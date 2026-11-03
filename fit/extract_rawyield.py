@@ -81,6 +81,28 @@ def add_info_on_canvas(axs, loc, system, pt_min, pt_max, fitter=None):
     axs.add_artist(anchored_text)
 
 
+def set_comb_bkg_initpars(fitter, ibkg, bkg_func):
+    """
+    Set the initial parameters of the combinatorial background, only for the
+    parameters defined for the chosen function (flarefly raises otherwise)
+
+    Parameters
+    ----------
+
+    - fitter (F2MassFitter): fitter instance
+    - ibkg (int): index of the combinatorial-background pdf
+    - bkg_func (str): name of the combinatorial-background function
+    """
+    if bkg_func in ("expo", "expopow"):
+        fitter.set_background_initpar(ibkg, "lam", -1.2, limits=[-10., 10.])
+    elif bkg_func.startswith("chebpol"):
+        order = int(bkg_func.replace("chebpol", ""))
+        if order >= 1:
+            fitter.set_background_initpar(ibkg, "c1", -0.05, limits=[-0.2, 0.])
+        if order >= 2:
+            fitter.set_background_initpar(ibkg, "c2", 0.008, limits=[0.000, 0.03])
+
+
 def get_sweights_df(fitter, df, mass_limits):
     """
     Get the sweights of a fit as a DataFrame indexed like the fitted candidates
@@ -353,9 +375,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         fitter_ptint.set_signal_initpar(0, "sigma", 0.03, limits=[0.02, 0.06])
         fitter_ptint.set_particle_mass(0, pdg_id=pdg_id)
         icombbkg = len(dfs_prd_bkg) if use_corr_bkg_ptint else 0
-        fitter_ptint.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.2, 0.])
-        fitter_ptint.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.030])
-        fitter_ptint.set_background_initpar(icombbkg, "lam", -1.2, limits=[-10., 10.])
+        set_comb_bkg_initpars(fitter_ptint, icombbkg, bkg_funcs[icombbkg])
         fitter_ptint.set_signal_initpar(0, "frac", 0.2, limits=[0., 1.])
         result = fitter_ptint.mass_zfit()
         if result.converged:
@@ -554,9 +574,7 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         if use_corr_bkg_pt and not cfg["fit_configs"]["fix_correlated_bkg_to_signal"][ipt]:
             fitter_pt.set_background_initpar(0, "frac", 0.05, limits=[0., 1.])
         icombbkg = len(dfs_prd_bkg_pt) if use_corr_bkg_pt else 0
-        fitter_pt.set_background_initpar(icombbkg, "lam", -1.2, limits=[-10., 10.])
-        fitter_pt.set_background_initpar(icombbkg, "c1", -0.05, limits=[-0.2, 0.])
-        fitter_pt.set_background_initpar(icombbkg, "c2", 0.008, limits=[0.000, 0.03])
+        set_comb_bkg_initpars(fitter_pt, icombbkg, bkg_funcs[icombbkg])
         result = fitter_pt.mass_zfit()
         if result.converged:
             fig, axs = fitter_pt.plot_mass_fit(
