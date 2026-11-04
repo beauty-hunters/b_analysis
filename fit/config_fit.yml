@@ -28,18 +28,20 @@ fit_configs:
   reference_file_for_fix_sigma_mean: null
   shift_bkg_templ: -0.02        # numerical value or null
   pt_int:
-    activate: false
+    activate: true
+    extended: true
     signal_funcs: ["gaussian"]
     bkg_funcs: ["chebpol2"]
     mass_limits: [4.90, 5.66]
-    use_bkg_templ: true
+    use_bkg_templ: false
     bkg_templ_opt: 1 # 0 -> all separated, 1 -> weighted average
     fix_correlated_bkg_to_signal: true
   # below one per pT bin
+  extended: [true, true, true, true, true, true, true]
   signal_funcs: [["gaussian"], ["gaussian"], ["gaussian"], ["gaussian"], ["gaussian"], ["gaussian"], ["gaussian"]]
   bkg_funcs: [["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"]]
   mass_limits: [[4.90, 5.66], [4.90, 5.66], [4.90, 5.66], [4.90, 5.66], [4.90, 5.66], [4.90, 5.66], [4.90, 5.66]]
-  use_bkg_templ: [true, true, true, true, true, true, true]
+  use_bkg_templ: [false, false, false, false, false, false, false]
   bkg_templ_opt: [1, 1, 1, 1, 1, 1, 1] # 0 -> all separated, 1 -> weighted average
   correlated_bkgs:
     - name: '$\mathrm{B^0 \rightarrow D^{*-}\pi^+ \rightarrow D^-\pi^+\{\pi^0, \gamma\}}$'
@@ -83,7 +85,7 @@ fit_configs:
       pdg: 0.000235438 # 2.51e-3 * 9.38e-2
       sim: 0.21315192743764172 # 0.5 * 0.42630385487528344
 
-  fix_correlated_bkg_to_signal: [true, true, true, true, true, true, true]
+  fix_correlated_bkg_to_signal: [false, false, false, false, false, false, false]
   fix_mean: false # bool or list of bool
   fix_sigma: false # bool or list of bool
 
@@ -93,6 +95,7 @@ plot_style:
   n_bins: [76, 76, 76, 76, 76, 76, 76]
 
 outputs:
-  directory: "fit/outputs/default_chebpol2"
-  suffix: "23_24_full_dataset"
+  directory: "fit/outputs/dummy"
+  suffix: "_LHC25_PbPb_dummy"
+  produce_sweights: true
 
