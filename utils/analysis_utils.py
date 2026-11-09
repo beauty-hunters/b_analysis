@@ -42,26 +42,27 @@ def get_n_events_from_zorro(infile_names, zorro_folder, triggers_of_interest_nam
         triggers_of_interest_names = [triggers_of_interest_names]
 
     for infile_name in infile_names:
-        f = uproot.open(infile_name)
-        zorro = f[zorro_folder]
+        infile = ROOT.TFile.Open(infile_name)
+        zorro = infile.Get(zorro_folder)
         n_events_per_file = 0
 
-        for _, run_folder in zorro.items(recursive=False): # Loop over the run folders
-            inspected_tvx = 0
-            triggers_of_interest_skimming = 0
-            analysed_triggers_of_interest = 0
-            inspected_tvx += sum(run_folder['InspectedTVX'].values())
-            triggers_of_interest_skimming += sum(
-                run_folder['Selections'].values()[
-                    run_folder['Selections'].axis().labels().index(trigger_name)
-                ] for trigger_name in triggers_of_interest_names
-            )
-            analysed_triggers_of_interest += sum(run_folder['AnalysedTriggersOfInterest'].values())
-            n_events_per_file += inspected_tvx*analysed_triggers_of_interest/triggers_of_interest_skimming
+        for run_folder in zorro.GetListOfKeys():
+            if "5" in run_folder.GetName():
+                hist_tvx = zorro.Get(f"{run_folder.GetName()}/InspectedTVX")
+                hist_scalers = zorro.Get(f"{run_folder.GetName()}/Scalers")
+                hist_triggers = zorro.Get(f"{run_folder.GetName()}/AnalysedTriggers")
+                inspected_tvx = hist_tvx.GetBinContent(1)
+                triggers_of_interest_skimming = sum(
+                    hist_scalers.GetBinContent(hist_scalers.GetXaxis().FindBin(trigger_name)) \
+                        for trigger_name in triggers_of_interest_names)
+                analysed_triggers_of_interest = sum(
+                    hist_triggers.GetBinContent(hist_triggers.GetXaxis().FindBin(trigger_name)) \
+                        for trigger_name in triggers_of_interest_names)
+                n_events_per_file += inspected_tvx*analysed_triggers_of_interest/triggers_of_interest_skimming
 
         if h_collisions_path is not None:
-            h_collisions = f[h_collisions_path]
-            z_vtx_eff = h_collisions.values()[h_collisions.axis().labels().index('PV #it{z}')] / h_collisions.values()[h_collisions.axis().labels().index('PV #it{z}') - 1]  # pylint:disable=line-too-long
+            h_collisions = infile.Get(h_collisions_path)
+            z_vtx_eff = h_collisions.GetBinContent(h_collisions.GetXaxis().FindBin('PV #it{z}')) / h_collisions.GetBinContent(h_collisions.GetXaxis().FindBin('PV #it{z}') - 1) # pylint:disable=line-too-long
             n_events_per_file = n_events_per_file*z_vtx_eff
 
         n_events += n_events_per_file
