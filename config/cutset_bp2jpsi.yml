@@ -1,0 +1,15 @@
+pt:
+  mins: [3., 5., 8., 12., 16.]
+  maxs: [5., 8., 12., 16., 23.]
+
+ML_output:
+  mins: [0.995, 0.95, 0.85, 0.7, 0.7]
+  maxs: [1.0, 1.0, 1.0, 1.0, 1.0]
+
+abs(fNSigTpcElJpsiDauNeg):
+  mins: [2, 2, 2, 2, 2]
+  maxs: [1.e9, 1.e9, 1.e9, 1.e9, 1.e9]
+
+# abs(fNSigTpcElJpsiDauPos):
+#   mins: [2, 2, 2, 2, 2]
+#   maxs: [1.e9, 1.e9, 1.e9, 1.e9, 1.e9]

@@ -4,7 +4,9 @@ common:
   labels: [Bkg, Signal]
   name_pt_var: fPt # name of pT branch in original TTree
   pt_bins_limits: [1, 6, 100]
-  tree_name: O2hfredcandlblite
+  tree_names:
+    Signal: O2hfredcandlblite
+    Bkg: O2hfredcandlblite
   folder_name: DF*
   column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec"]
   preselections: "fCpa > 0.0 and fChi2PCA < 0.1 and fDecayLength < 10 and fProng0MlScoreNonprompt > 0.8 and fPtBach > 1.0" # if no preselections set to null or an empty string

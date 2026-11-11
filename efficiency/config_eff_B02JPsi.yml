@@ -1,0 +1,16 @@
+particle: 'B0ToJpsi'
+
+reco_file_names: [/home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_2_5_ModelApplied.parquet.gzip,
+                  /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_5_8_ModelApplied.parquet.gzip,
+                  /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_8_100_ModelApplied.parquet.gzip] # List of parquet files with the ML score
+
+gen:
+  file_names: [/home/fgrosa/analysis_b2jpsi/inputs/mc/AnalysisResultsTask_LHC26f10_f11_bzero.root]
+  sparse_name: 'hf-task-b0-to-jpsi-k0-star-reduced/hPtYGenSig'
+  sparse_name_acc: 'hf-task-b0-to-jpsi-k0-star-reduced/hPtYWithProngsInAccepanceGenSig'
+  pt_axis: 0
+
+cutset_file_name: '/home/fgrosa/analysis_b2jpsi/b_analysis/ML/optimisation/cutset_dummy.yml'
+eff_frac: 1.
+
+output_file_name: '/home/fgrosa/analysis_b2jpsi/b_analysis/ML/optimisation/presel_eff_b0_to_jpsi_kstar.root'

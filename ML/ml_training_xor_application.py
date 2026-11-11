@@ -76,7 +76,7 @@ class MlCommon:
         self.channel = config["channel"]
         self.labels = enforce_list(config["labels"])
         # input
-        self.tree_name = config["tree_name"]
+        self.tree_names = config["tree_names"]
         self.folder_name = config["folder_name"]
         # preselections
         self.preselections = config["preselections"] if config["preselections"] else None
@@ -189,7 +189,7 @@ class MlTraining(MlCommon):
         for label in self.labels:
             handlers[label] = TreeHandler(
                 file_name=self.infile_names[label],
-                tree_name=self.tree_name,
+                tree_name=self.tree_names[label],
                 folder_name=self.folder_name
             ).get_subset(
                 f"({self.queries[label]}) and ({self.preselections})"
@@ -563,7 +563,7 @@ class MlApplication(MlCommon):
             print(f"Loading and preparing data file {infile_name}: ...", end="\r")
             hdl_data = TreeHandler(
                 file_name=infile_name,
-                tree_name=self.tree_name,
+                tree_name=self.tree_names["Bkg"],
                 folder_name=self.folder_name
             ).get_subset( # ensure same preselections used for training
                 self.preselections
@@ -617,8 +617,20 @@ class MlApplication(MlCommon):
 
                 outfile_name = f"{out_dir}/{data_tag}_{self.channel}_pT_{pt_bin[0]}_{pt_bin[1]}_ModelApplied"
                 outfile_name_root = outfile_name + ".root"
+                # with uproot.recreate(outfile_name_root) as ofile:
+                #     ofile[self.out_tree_name] = df_data_pt_sel
                 with uproot.recreate(outfile_name_root) as ofile:
-                    ofile[self.out_tree_name] = df_data_pt_sel
+                    ofile.mktree(
+                        self.out_tree_name,
+                        {
+                            col: df_data_pt_sel[col].to_numpy().dtype
+                            for col in df_data_pt_sel.columns
+                        }
+                    )
+                    ofile[self.out_tree_name].extend({
+                        col: df_data_pt_sel[col].to_numpy()
+                        for col in df_data_pt_sel.columns
+                    })
                 outfile_name_parquet = outfile_name + ".parquet.gzip"
                 df_data_pt_sel.to_parquet(outfile_name_parquet)
 

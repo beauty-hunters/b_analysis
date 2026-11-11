@@ -145,10 +145,10 @@ if __name__ == "__main__":
     PARSER.add_argument("--jobs", "-j", type=int, default=20,
                         help="number of workers", required=False)
     PARSER.add_argument("--suffix", "-s", metavar="text",
-                        default="_LHC24_pass1_skimmed",
+                        default="_LHC26f11_bplus",
                         help="output file", required=False)
     PARSER.add_argument("--n_merged_files", "-n", type=int,
-                        default=1, help="number of output merged AO2D files",
+                        default=10, help="number of output merged AO2D files",
                         required=False)
     PARSER.add_argument("--slim", action="store_true", default=False,
                         help="option for slim outputs on hyperloop", required=False)
