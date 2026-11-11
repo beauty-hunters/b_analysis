@@ -6,10 +6,6 @@ ML_output:
   mins: [0.99, 0.05, 0.05, 0.05, 0.05]
   maxs: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
-abs(fNSigTpcElJpsiDauNeg):
-  mins: [2, 2, 2, 2, 2]
+fNSigTpcElVeto:
+  mins: [2.5, 2.5, 2.5, 2.5, 2.5]
   maxs: [1.e9, 1.e9, 1.e9, 1.e9, 1.e9]
-
-# abs(fNSigTpcElJpsiDauPos):
-#   mins: [2, 2, 2, 2, 2]
-#   maxs: [1.e9, 1.e9, 1.e9, 1.e9, 1.e9]

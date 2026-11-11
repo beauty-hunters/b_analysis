@@ -185,7 +185,10 @@ def fit(config_file): # pylint: disable=too-many-locals,too-many-statements, too
         else:
             selection_string += f" or ({pt_min} < fPt < {pt_max}) "
         for cut in cuts:
-            selection_string += f" and {cut_set[cut]['mins'][ipt]} < {cut} < {cut_set[cut]['maxs'][ipt]}"
+            if cut == "fNSigTpcElVeto":
+                selection_string += f" and {cut_set[cut]['mins'][ipt]} < sqrt(fNSigTpcElJpsiDauNeg*fNSigTpcElJpsiDauNeg + fNSigTpcElJpsiDauPos*fNSigTpcElJpsiDauPos) < {cut_set[cut]['maxs'][ipt]}"
+            else:
+                selection_string += f" and {cut_set[cut]['mins'][ipt]} < {cut} < {cut_set[cut]['maxs'][ipt]}"
     sweights = {}
     produce_sweights = cfg["outputs"]["produce_sweights"]
 
