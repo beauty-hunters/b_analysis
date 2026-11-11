@@ -92,9 +92,15 @@ def draw_efficiency_figure(particle, h_eff, h_eff_trigger, h_acc, out_file_name_
     if particle == "Bplus":
         decay_channel = 'B^{+}#rightarrow#bar{D}^{#font[122]{0}}#pi^{+}\
             #rightarrow #pi^{#font[122]{-}}K^{+}#pi^{+}'
-    if particle == "B0":
+    elif particle == "B0":
         decay_channel = 'B^{0}#rightarrow D^{#font[122]{-}}#pi^{+}\
             #rightarrow #pi^{#font[122]{-}}K^{+}#pi^{#font[122]{-}}#pi^{+}'
+    elif particle == "BpToJpsi":
+        decay_channel = 'B^{+}#rightarrowJ/#PsiK^{#plus}#rightarrow#mu^{#plus}#mu^{#minus}K^{#plus}'
+    elif particle == "B0ToJpsi":
+        decay_channel = 'B^{0}#rightarrowJ/#PsiK^{*0}#rightarrow#mu^{#plus}#mu^{#minus}K^{#plus}#pi^{#minus}'
+    elif particle == "BsToJpsi":
+        decay_channel = 'B_{s}^{0}#rightarrowJ/#Psi#phi#rightarrow#mu^{#plus}#mu^{#minus}K^{#plus}K^{#minus}'
 
     text_decay = ROOT.TLatex(0.51, 0.36, decay_channel)
     text_decay.SetNDC()
@@ -175,13 +181,23 @@ def compute_efficiency(config_file_name): # pylint: disable=too-many-statements
         h_sparse_gen = in_file.Get(config['gen']['sparse_name'])
         h_sparse_gen_in_acc = in_file.Get(config['gen']['sparse_name_acc'])
         if i_file == 0:
-            h_gen = h_sparse_gen.Projection(config['gen']['pt_axis'])
+            if isinstance(h_sparse_gen, ROOT.THnSparse):
+                h_gen = h_sparse_gen.Projection(config['gen']['pt_axis'])
+            else:
+                h_gen = h_sparse_gen.ProjectionX()
             h_gen.SetDirectory(0)
-            h_gen_in_acc = h_sparse_gen_in_acc.Projection(config['gen']['pt_axis'])
+            if isinstance(h_sparse_gen_in_acc, ROOT.THnSparse):
+                h_gen_in_acc = h_sparse_gen_in_acc.Projection(config['gen']['pt_axis'])
+            else:
+                h_gen_in_acc = h_sparse_gen_in_acc.ProjectionX()
             h_gen_in_acc.SetDirectory(0)
         else:
-            h_gen.Add(h_sparse_gen.Projection(config['gen']['pt_axis']))
-            h_gen_in_acc.Add(h_sparse_gen_in_acc.Projection(config['gen']['pt_axis']))
+            if isinstance(h_sparse_gen, ROOT.THnSparse):
+                h_gen.Add(h_sparse_gen.Projection(config['gen']['pt_axis']))
+                h_gen_in_acc.Add(h_sparse_gen_in_acc.Projection(config['gen']['pt_axis']))
+            else:
+                h_gen.Add(h_sparse_gen.ProjectionX())
+                h_gen_in_acc.Add(h_sparse_gen_in_acc.ProjectionX())
         in_file.Close()
 
     h_gen.SetName('h_gen')
@@ -192,10 +208,20 @@ def compute_efficiency(config_file_name): # pylint: disable=too-many-statements
     h_reco_trigger.Reset()
 
 
+    if particle == "Bplus":
+        flag_mc = 1
+    elif particle == "BpToJpsi":
+        flag_mc = 4
+    elif particle == "B0ToJpsi":
+        flag_mc = 1
+    elif particle == "BsToJpsi":
+        flag_mc = 2
+    elif particle == "B0":
+        flag_mc = 1
     for i_pt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
 
         # Apply the cuts on the reconstructed particles
-        require_signal = "(fFlagMcMatchRec == -1 or fFlagMcMatchRec == 1)"
+        require_signal = f"(fFlagMcMatchRec == {-flag_mc} or fFlagMcMatchRec == {flag_mc})"
         df_reco = pd.concat(
             [read_parquet_in_batches(parquet, f"{pt_min} < fPt < {pt_max} and {require_signal}")
              for parquet in config['reco_file_names']])

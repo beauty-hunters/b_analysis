@@ -4,7 +4,10 @@ common:
   labels: [Bkg, Prompt, FD]  # background class should be first
   name_pt_var: fPt # name of pT branch in original TTree
   pt_bins_limits: [2, 4, 6, 8, 12, 24]
-  tree_name: O2hfcanddplite
+  tree_names:
+   Bkg: O2hfcanddplite
+   Prompt: O2hfcanddplite
+   FD: O2hfcanddplite
   folder_name: DF*
   column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec"]
   preselections: "fCandidateSelFlag == 7 and fNSigTpcTofPi0 < 50 and fNSigTpcTofKa1 < 50 and fNSigTpcTofPi2 < 50 and fDecayLength < 2" # if no preselections set to null or an empty string

@@ -1,0 +1,69 @@
+pt:
+  mins: [3., 5., 8., 12., 16.]
+  maxs: [5., 8., 12., 16., 23.]
+
+ML_selections:
+  mins: [0.998, 0.80, 0.75, 0.5, 0.5]
+  maxs: [0.9999, 0.99, 0.95, 0.9, 0.9]
+  steps: [0.0001, 0.01, 0.01, 0.02, 0.02]
+
+channel:
+  name: B0ToJPsi
+  pdg_code: 511  # PDG code of the beauty meson
+  br:
+    b0_to_jpsikstar: 0.00127
+    jpsi_to_mumu: 0.05961
+
+inputs:
+  fonll:
+    file_name: /home/fgrosa/analysis_b2jpsi/b_analysis/ML/optimisation/fonll_graph.root
+    graph_name: gFONLL
+    frag_frac: 0.41 # B hadron to B0/B+ fragmentation fraction
+  acc_eff_presel:
+    file_name: /home/fgrosa/analysis_b2jpsi/b_analysis/ML/optimisation/presel_eff_b0_to_jpsi_kstar.root
+    hist_name: h_eff_trigger
+  zorro:
+    file_names: [ # AnalysisResults.root files of preliminary workflow
+            /home/fgrosa/analysis_b2jpsi/inputs/data/AnalysisResults_LHC25_bzero.root,
+            /home/fgrosa/analysis_b2jpsi/inputs/data/AnalysisResults_LHC26_bzero.root
+            ]
+    folder_name: hf-candidate-creator-2prong/Zorro
+    triggers_of_interest: ['fHfBtoJPsiKstar']
+    h_collisions_path: 'hf-candidate-creator-2prong/hCollisions'
+    tvx_cross_section: 53400000000 # pb
+  mc: # this is MC with Bkg and ModelApplied !
+    file_names: [
+        /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_2_5_ModelApplied.parquet.gzip,
+        /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_5_8_ModelApplied.parquet.gzip,
+        /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26f10_f11_B0ToJPsi_pT_8_100_ModelApplied.parquet.gzip
+       ]
+  real_data: # this is real data with ModelApplied !
+    file_names: [
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC25_skimmed_pass1_B0ToJPsi_pT_2_5_ModelApplied.parquet.gzip,
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC25_skimmed_pass1_B0ToJPsi_pT_5_8_ModelApplied.parquet.gzip,
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC25_skimmed_pass1_B0ToJPsi_pT_8_100_ModelApplied.parquet.gzip,
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26_skimmed_pass1_B0ToJPsi_pT_2_5_ModelApplied.parquet.gzip,
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26_skimmed_pass1_B0ToJPsi_pT_5_8_ModelApplied.parquet.gzip,
+          /home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/application/LHC26_skimmed_pass1_B0ToJPsi_pT_8_100_ModelApplied.parquet.gzip
+        ]
+
+fit_bkg:
+  mass_range_to_exclude: [5.15, 5.4]
+  mass_limits_for_fit: [4.9, 5.66]
+  bkg_funcs: [["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"], ["chebpol2"]]
+  nbins: 76
+  use_bkg_templ: False
+  correlated_bkgs: null
+  signal_br:
+    pdg: 0.000235438 # 2.51e-3 * 9.38e-2
+    sim: 0.17052154195011338 # 0.4 * 0.42630385487528344
+  verbosity: 0
+
+zfit_cpus:
+  intra: 30
+  inter: 30
+
+output:
+  outdir: /home/fgrosa/analysis_b2jpsi/b_analysis/ML/optimisation/B0ToJPsi
+  sidebands_fit_dir: sidebands_fit
+  scan_results_file_name: scan_results.root

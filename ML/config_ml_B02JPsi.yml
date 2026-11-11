@@ -1,0 +1,134 @@
+---
+common:
+  channel: B0ToJPsi
+  labels: [Bkg, Signal]
+  name_pt_var: fPt # name of pT branch in original TTree
+  pt_bins_limits: [2, 5, 8, 100]
+  tree_names:
+    Signal: O2hfredcandb0lite
+    Bkg: O2hfredcandb0lite
+  folder_name: DF*
+  column_to_save_list: ["fPt", "fM", "fFlagMcMatchRec", "fNSigTpcTofMuJpsiDauNeg", "fNSigTpcTofMuJpsiDauPos", "fNSigTpcTofElJpsiDauNeg", "fNSigTpcTofElJpsiDauPos", "fNSigTpcMuJpsiDauNeg", "fNSigTpcMuJpsiDauPos", "fNSigTpcElJpsiDauNeg", "fNSigTpcElJpsiDauPos", "fPtJpsiDauPos", "fPtJpsiDauNeg", "fMJpsi", "fMK0Star", "fIsSelB0KPi", "fIsSelB0PiK"]
+  preselections: "fCpaXY > 0.8 and fCpa > 0.8 and fNSigTpcTofMuJpsiDauNeg < 1.e6 and fNSigTpcTofMuJpsiDauPos < 1.e6 and fImpactParameterProduct < 0 and fDecayLength < 1 and 0.74555 < fMK0Star < 1.04555" # if no preselections set to null or an empty string
+
+train_ml:
+  input:
+    Signal: [
+      /home/fgrosa/analysis_b2jpsi/inputs/mc/Tree_LHC26f10_f11_bzero_training.root
+    ]
+    Bkg: [
+      /home/fgrosa/analysis_b2jpsi/inputs/data/Tree_LHC26_bzero.root,
+      /home/fgrosa/analysis_b2jpsi/inputs/data/Tree_LHC25_bzero.root
+    ]
+
+  query:
+    Bkg: fM < 5.0 or fM > 5.56
+    Signal: fOriginMcRec == 1
+
+  pt_bins_limits: null  # to override common pt binning; set to null else
+
+  downsample_bkg_factor: 1 # value of downSampleBkgFactor set at TTree creation level
+
+  seed_split: 42 # seed used for df_bkg sampling and train_test_split(...)
+  class_balance:
+    share: equal # change how the dataset is built, options available: 'equal', 'all_signal'
+    # 'equal' -> same number of signal/bkg (not using all the signal available)
+    # 'all_signal' -> try to use all the signal + add n_bkg = bkg_factor * n_signal
+    bkg_factor: [1.] # list of multipliers for n_signal used to determine n_cand_bkg in the 'all_signal' option
+  test_fraction: 0.2
+
+  training:
+    raw_output: false
+    roc_auc_approach: ovo
+    roc_auc_average: macro
+    training_vars:
+      [
+        # fChi2PCA,
+        fDecayLength,
+        fDecayLengthXY,
+        fDecayLengthNormalised,
+        fDecayLengthXYNormalised,
+        fImpactParameterJpsiDauPos,
+        fImpactParameterJpsiDauNeg,
+        fImpactParameterLfTrack0,
+        fImpactParameterLfTrack1,
+        fImpactParameterProduct,
+        fCpa,
+        fCpaXY,
+        fCpaJpsi,
+        fNSigTpcTofMuJpsiDauNeg,
+        fNSigTpcTofMuJpsiDauPos,
+        fNSigTpcTofElJpsiDauNeg,
+        fNSigTpcTofElJpsiDauPos,
+        fNSigTpcTofPiBachelor0,
+        fNSigTpcTofKaBachelor0,
+        fNSigTpcTofPiBachelor1,
+        fNSigTpcTofKaBachelor1
+      ]
+    hyper_pars: [
+      {
+        "max_depth": 4,
+        "learning_rate": 0.045,
+        "n_estimators": 800,
+        "min_child_weight": 4,
+        "n_jobs": 4,
+        "tree_method": hist,
+      },
+      {
+        "max_depth": 4,
+        "learning_rate": 0.045,
+        "n_estimators": 800,
+        "min_child_weight": 4,
+        "n_jobs": 4,
+        "tree_method": hist,
+      },
+      {
+        "max_depth": 4,
+        "learning_rate": 0.045,
+        "n_estimators": 800,
+        "min_child_weight": 4,
+        "n_jobs": 4,
+        "tree_method": hist,
+      }]
+    hyper_pars_opt:
+      activate: true
+      ntrials: 25
+      njobs: 4
+      timeout: 1800
+      hyper_par_ranges:
+        {
+          "max_depth": !!python/tuple [2, 5],
+          "learning_rate": !!python/tuple [0.03, 0.06],
+          "n_estimators": !!python/tuple [400, 2000],
+          "min_child_weight": !!python/tuple [4, 4],
+          "subsample": !!python/tuple [1, 1],
+          "colsample_bytree": !!python/tuple [1, 1]
+        }
+
+  output:
+    dir: ML/training/B02Jpsi/withPID
+    log_file: log.txt # name of log file for each model training
+    # list of variables saved in the dataframes with the applied models
+    
+
+  plots:
+    extra_columns: ["fPt", "fM"] # list of variables to plot (on top of the training ones)
+    extension: ["pdf", "png"] # extension of files containing saved plots
+
+
+apply_ml:
+  input:
+    file_names: [ 
+      /home/fgrosa/analysis_b2jpsi/inputs/data/Tree_LHC26_bzero.root,
+      /home/fgrosa/analysis_b2jpsi/inputs/data/Tree_LHC25_bzero.root,
+      /home/fgrosa/analysis_b2jpsi/inputs/mc/Tree_LHC26f10_f11_bzero.root
+    ]
+    model_names: ["/home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/training/B02Jpsi/withPID/pt2_5/ModelHandler_B0ToJPsi_pT_2_5.pickle",
+                  "/home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/training/B02Jpsi/withPID/pt5_8/ModelHandler_B0ToJPsi_pT_5_8.pickle",
+                  "/home/fgrosa/analysis_b2jpsi/b_analysis/ML/ML/training/B02Jpsi/withPID/pt8_100/ModelHandler_B0ToJPsi_pT_8_100.pickle"]
+    merge_mc_with_check_decay: false
+    tree_name_check_decay: "O2hfredb0mccheck"
+  output:
+    dir: ML/application
+    tree_name: treeB0
+    data_tags: [LHC26_skimmed_pass1, LHC25_skimmed_pass1, LHC26f10_f11] 

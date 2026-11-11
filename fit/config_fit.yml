@@ -93,6 +93,9 @@ plot_style:
   pt_int:
     n_bins: 76
   n_bins: [76, 76, 76, 76, 76, 76, 76]
+  system: pp
+  energy: "13.6"
+  extra_info_loc: ["lower right", "lower left"]
 
 outputs:
   directory: "fit/outputs/dummy"

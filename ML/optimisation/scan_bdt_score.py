@@ -13,7 +13,7 @@ import uproot
 import yaml
 from hist import Hist
 
-sys.path.append('../../utils')
+sys.path.append('utils')
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from df_utils import read_parquet_in_batches
 from analysis_utils import get_n_events_from_zorro
@@ -79,7 +79,7 @@ def create_hist(x_axis, contents, errors, label="BDT score"):
     return histo
 
 
-def get_labeled_dfs(infile_names):
+def get_labeled_dfs(infile_names, flag_mc):
     """
     Helper method to get labeled dataframes from input files
 
@@ -100,7 +100,7 @@ def get_labeled_dfs(infile_names):
     # load dataframes from input files
     df_tot = pd.concat([read_parquet_in_batches(parquet) for parquet in infile_names])
     df_mc_prd_bkg = df_tot.query("fFlagMcMatchRec == 8")
-    df_mc_sig = df_tot.query("fFlagMcMatchRec == -1 or fFlagMcMatchRec == 1")
+    df_mc_sig = df_tot.query(f"fFlagMcMatchRec == {-flag_mc} or fFlagMcMatchRec == {flag_mc}")
 
     return df_mc_prd_bkg, df_mc_sig
 
@@ -319,7 +319,7 @@ def get_signal_region(df_mc_sig, fit_limits, nbins, pt_bin, sel, pdg_code, verbo
                           ["nobkg"],
                           name=f"b0_mc_pT_{pt_bin[0]:.0f}_{pt_bin[1]:.0f}_ML_cut_{1000*sel:.0f}",
                           verbosity=verbosity)
-    fitter.set_signal_initpar(0, "sigma", 0.03, limits=[0.01, 0.08])
+    fitter.set_signal_initpar(0, "sigma", 0.03, limits=[0.01, 0.12])
     fitter.set_particle_mass(0, pdg_id=pdg_code)
     result = fitter.mass_zfit()
     if result.converged:
@@ -390,13 +390,15 @@ def get_expected_background_from_sidebands(
                            var_name="fM",
                            limits=full_inv_mass_region,
                            nbins=nbins)
-
+    combbkg_idx = 0
     if df_mc_prd_bkg is not None:
         data_hdl_prd_bkg = DataHandler(df_mc_prd_bkg,
                                        var_name="fM",
                                        limits=full_inv_mass_region,
                                        nbins=nbins)
         bkg_funcs.insert(0, "kde_grid")
+        combbkg_idx = 1
+        
 
     fitter = F2MassFitter(data_hdl,
                           ["nosignal"],
@@ -407,11 +409,11 @@ def get_expected_background_from_sidebands(
 
     if df_mc_prd_bkg is not None:
         fitter.set_background_kde(0, data_hdl_prd_bkg)
+        fitter.set_background_initpar(0, "frac", 0.2, limits=[0., 1.])
 
-    fitter.set_background_initpar(0, "frac", 0.2, limits=[0., 1.])
-    fitter.set_background_initpar(1, "lam", -1.2, limits=[-10., 10.])
-    fitter.set_background_initpar(1, "c1", -0.05, limits=[-0.2, 0.])
-    fitter.set_background_initpar(1, "c2", 0.008, limits=[0.000, 0.03])
+    fitter.set_background_initpar(combbkg_idx, "lam", -1.2, limits=[-10., 10.])
+    fitter.set_background_initpar(combbkg_idx, "c1", -0.05)
+    fitter.set_background_initpar(combbkg_idx, "c2", 0.008)
     result = fitter.mass_zfit()
 
     exp_bkg, exp_bkg_unc = 0., 0.
@@ -507,6 +509,16 @@ def scan(config):
     frag_frac = config["inputs"]["fonll"]["frag_frac"]
     if channel == "B0ToDPi":
         br = config["channel"]["br"]["b0_todminuspi"] * config["channel"]["br"]["dplus_tokpipi"]
+        flag_mc = 1
+    elif channel == "BpToJPsi":
+        br = config["channel"]["br"]["bp_to_jpsika"] * config["channel"]["br"]["jpsi_to_mumu"]
+        flag_mc = 4
+    elif channel == "B0ToJPsi":
+        br = config["channel"]["br"]["b0_to_jpsikstar"] * config["channel"]["br"]["jpsi_to_mumu"]
+        flag_mc = 1
+    elif channel == "BsToJPsi":
+        br = config["channel"]["br"]["bs_to_jpsiphi"] * config["channel"]["br"]["jpsi_to_mumu"]
+        flag_mc = 2
     # Get expected signal divided by Delta pT and (Acc x eff)
     # then we only have to multiply by Delta pT and (Acc x eff) to get the expected signal for each BDT score cut
     exp_sig_over_deltapt_over_acceff_tuple = get_expected_signal_over_deltapt_over_acceff(
@@ -515,7 +527,7 @@ def scan(config):
         br,
         int_lumi)
 
-    df_mc_prd_bkg, df_mc_sig = get_labeled_dfs(config["inputs"]["mc"]["file_names"])
+    df_mc_prd_bkg, df_mc_sig = get_labeled_dfs(config["inputs"]["mc"]["file_names"], flag_mc)
 
     # Retrieve the histogram conatining acceptance times efficiency of preselections
     acc_eff_presel, acc_eff_unc_presel, acc_eff_bins = get_acc_eff_presel(
@@ -549,8 +561,8 @@ def scan(config):
         if config["fit_bkg"]["use_bkg_templ"]:
             df_mc_prd_bkg_pt = df_mc_prd_bkg.query(f"{pt_min} < fPt < {pt_max}")
 
-        acc_eff_presel_ipt = acc_eff_presel[np.digitize((pt_min+pt_max)/2, acc_eff_bins) - 1]
-        acc_eff_unc_presel_ipt = acc_eff_unc_presel[np.digitize((pt_min+pt_max)/2, acc_eff_bins) - 1]
+        acc_eff_presel_ipt = acc_eff_presel[np.digitize((pt_min+pt_max)/2, acc_eff_bins) - 1] / 3
+        acc_eff_unc_presel_ipt = acc_eff_unc_presel[np.digitize((pt_min+pt_max)/2, acc_eff_bins) - 1] / 3
 
         # perform the scan
         exp_sig_ipt, exp_sig_unc_ipt = [[] for _ in range(2)]
@@ -601,7 +613,7 @@ def scan(config):
 
                 df_for_template_bkg_sampled = pd.concat(dfs_prd_bkg_sampled)
             else:
-                df_for_template_bkg = None
+                df_for_template_bkg, df_for_template_bkg_sampled = None, None
 
             exp_bkg, exp_bkg_unc = get_expected_background_from_sidebands(
                 df_data_pt.query(f"ML_output > {bdt_sel}"),
@@ -616,7 +628,9 @@ def scan(config):
                 df_mc_prd_bkg=df_for_template_bkg_sampled,
                 verbosity=fit_verbosity)
 
-            del df_for_template_bkg
+            if config["fit_bkg"]["use_bkg_templ"]:
+                del df_for_template_bkg
+                del df_for_template_bkg_sampled
 
             # expected significance
             exp_signif, exp_signif_unc = get_expected_significance(exp_sig,
@@ -676,5 +690,5 @@ if __name__ == "__main__":
     with open(args.config, "r", encoding="utf-8") as yml_cfg:
         configuration = yaml.load(yml_cfg, yaml.FullLoader)
     print("Loading configuration: Done!")
-    zfit.run.set_cpus_explicit(intra=configuration["zfit_cpus"]["intra"], inter=configuration["zfit_cpus"]["inter"])
+    # zfit.run.set_cpus_explicit(intra=configuration["zfit_cpus"]["intra"], inter=configuration["zfit_cpus"]["inter"])
     scan(configuration)
