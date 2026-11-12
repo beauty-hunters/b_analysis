@@ -234,7 +234,10 @@ def compute_efficiency(config_file_name): # pylint: disable=too-many-statements
         for cut_var in cut_set:
             if cut_var in ('pt', 'M'):
                 continue
-            sel_to_apply += f" {cut_set[cut_var]['mins'][i_pt]} < {cut_var} < {cut_set[cut_var]['maxs'][i_pt]} and"
+            if cut == "fNSigTpcElVeto":
+                sel_to_apply += f" {cut_set[cut]['mins'][ipt]} < sqrt(fNSigTpcElJpsiDauNeg*fNSigTpcElJpsiDauNeg + fNSigTpcElJpsiDauPos*fNSigTpcElJpsiDauPos) < {cut_set[cut]['maxs'][ipt]} and"
+            else:
+                sel_to_apply += f" {cut_set[cut]['mins'][ipt]} < {cut_var} < {cut_set[cut]['maxs'][ipt]} and"
         sel_to_apply = sel_to_apply[:-3] # Remove the last 'and'
 
         df_reco = df_reco.query(sel_to_apply)
